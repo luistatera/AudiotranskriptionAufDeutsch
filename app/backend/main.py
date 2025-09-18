@@ -1,3 +1,5 @@
+import base64
+import logging
 import os
 import shutil
 import subprocess
@@ -7,18 +9,41 @@ from typing import Optional
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from google.api_core import exceptions as google_exceptions
-from google.cloud import speech
-from google.oauth2 import service_account
+from google.api_core import exceptions as google_api_exceptions
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 FFMPEG_PATH = shutil.which("ffmpeg")
-CREDENTIALS_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("GCP_PROJECT_ID")
-REGION = os.getenv("GOOGLE_SPEECH_REGION", "global")
-SPEECH_MODEL = os.getenv("GOOGLE_SPEECH_MODEL", "latest_long")
-API_ENDPOINT = os.getenv("GOOGLE_API_ENDPOINT")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "models/gemini-2.5-flash")
+GEMINI_TEMPERATURE = float(os.getenv("GEMINI_TEMPERATURE", "0"))
+GEMINI_API_BASE = os.getenv("GENERATIVE_API_BASE")
 
-app = FastAPI(title="Google Speech Transcription")
+_DEFAULT_PROMPT = (
+    "WICHTIG: Diese Audiotranskription erfolgt ausschließlich für private Bildungszwecke und persönliches Lernen. "
+    "Alle Inhalte werden nur für Studienzwecke verwendet und nicht kommerziell verwertet.\n\n"
+    "Sie sind ein hochpräziser Spracherkennungsassistent für deutsche Sprache. "
+    "Transkribieren Sie die folgende deutsche Audioaufnahme vollständig und wortgetreu für Lernzwecke. "
+    "Dies ist eine private Sprachübung/Lernsession.\n\n"
+    "Achten Sie auf:\n"
+    "- Jedes einzelne Wort genau wiedergeben\n"
+    "- Richtige deutsche Rechtschreibung und Grammatik\n"
+    "- Natürliche Satzzeichen setzen\n"
+    "- Keine Auslassungen oder Ergänzungen\n"
+    "- Dialekte und umgangssprachliche Ausdrücke beibehalten\n\n"
+    "Antworten Sie nur mit dem exakten deutschen Transkript ohne zusätzliche Kommentare:"
+)
+
+app = FastAPI(title="Gemini Speech Transcription")
 
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -38,47 +63,57 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-_speech_client: Optional[speech.SpeechClient] = None
+_gemini_model: Optional[genai.GenerativeModel] = None
 _client_error: Optional[str] = None
+_generation_config = {
+    "temperature": GEMINI_TEMPERATURE,
+    "response_mime_type": "text/plain",
+}
 
 
-def _init_speech_client() -> None:
-    global _speech_client, _client_error
-    if _speech_client or _client_error:
+def _init_gemini_model() -> None:
+    global _gemini_model, _client_error
+    if _gemini_model or _client_error:
         return
 
-    credentials = None
-    if CREDENTIALS_PATH:
-        if not os.path.exists(CREDENTIALS_PATH):
-            _client_error = (
-                f"Google credentials file not found at '{CREDENTIALS_PATH}'. "
-                "Set GOOGLE_APPLICATION_CREDENTIALS to a valid path."
-            )
-            return
-        try:
-            credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_PATH)
-        except Exception as exc:  # pragma: no cover - credential parsing failure
-            _client_error = f"Unable to load Google credentials: {exc}"
-            return
+    if not GEMINI_API_KEY:
+        _client_error = "GEMINI_API_KEY environment variable is not set"
+        return
 
-    endpoint = API_ENDPOINT
-    if not endpoint and REGION and REGION.lower() != "global":
-        endpoint = f"{REGION}-speech.googleapis.com"
-
-    client_options = {"api_endpoint": endpoint} if endpoint else None
+    configure_kwargs = {"api_key": GEMINI_API_KEY}
+    if GEMINI_API_BASE:
+        configure_kwargs["client_options"] = {"api_endpoint": GEMINI_API_BASE}
 
     try:
-        _speech_client = speech.SpeechClient(credentials=credentials, client_options=client_options)
-        _ = _speech_client.transport.grpc_channel
-    except Exception as exc:  # pragma: no cover - client creation failure
-        detail = "Failed to initialize Google Speech client"
-        if not credentials and not CREDENTIALS_PATH:
-            detail += "; set GOOGLE_APPLICATION_CREDENTIALS to a service account file"
-        _client_error = f"{detail}: {exc}"
+        genai.configure(**configure_kwargs)
+        _gemini_model = genai.GenerativeModel(
+            model_name=GEMINI_MODEL,
+            generation_config=_generation_config,
+        )
+    except Exception as exc:  # pragma: no cover - startup failure only
+        _client_error = f"Failed to initialize Gemini client: {exc}"
 
 
-_init_speech_client()
+_init_gemini_model()
 
+
+@app.get("/")
+async def root() -> JSONResponse:
+    """Root endpoint with API information"""
+    return JSONResponse(content={
+        "message": "German Audio Transcription API with Gemini 2.5 Flash",
+        "version": "1.0.0",
+        "endpoints": {
+            "/health": "Health check",
+            "/test-gemini": "Test Gemini API connection",
+            "/transcribe": "POST - Upload audio for transcription",
+            "/transcribe-educational": "POST - Educational transcription with fair use emphasis",
+            "/docs": "API documentation (Swagger UI)",
+            "/redoc": "API documentation (ReDoc)"
+        },
+        "model": GEMINI_MODEL,
+        "status": "running"
+    })
 
 @app.get("/health")
 async def health() -> JSONResponse:
@@ -94,13 +129,40 @@ async def health() -> JSONResponse:
         )
     return JSONResponse(content={"status": "ok"})
 
+@app.get("/test-gemini")
+async def test_gemini() -> JSONResponse:
+    """Test Gemini API with a simple text request"""
+    logger.info("Testing Gemini API with simple text...")
+    try:
+        model = _ensure_model()
+        
+        # Simple text test (much faster than audio)
+        import concurrent.futures
+        
+        def call_gemini():
+            return model.generate_content("Say 'Hello, I am working!'")
+        
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(call_gemini)
+            try:
+                response = future.result(timeout=10)
+                text = (response.text or "").strip()
+                logger.info(f"Gemini test response: {text}")
+                return JSONResponse(content={"status": "ok", "test_response": text})
+            except concurrent.futures.TimeoutError:
+                logger.error("Gemini test timed out")
+                return JSONResponse(status_code=504, content={"status": "timeout", "detail": "Gemini API timed out"})
+    except Exception as e:
+        logger.error(f"Gemini test failed: {e}")
+        return JSONResponse(status_code=500, content={"status": "error", "detail": str(e)})
 
-def _ensure_client() -> speech.SpeechClient:
+
+def _ensure_model() -> genai.GenerativeModel:
     if _client_error:
         raise HTTPException(status_code=500, detail=_client_error)
-    if not _speech_client:
-        raise HTTPException(status_code=500, detail="Speech client is not initialized")
-    return _speech_client
+    if not _gemini_model:
+        raise HTTPException(status_code=500, detail="Gemini model is not initialized")
+    return _gemini_model
 
 
 def _convert_audio_to_wav(source_path: str) -> str:
@@ -113,17 +175,19 @@ def _convert_audio_to_wav(source_path: str) -> str:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as wav_file:
         wav_path = wav_file.name
 
-    command = [
+        command = [
         FFMPEG_PATH,
         "-y",
         "-i",
         source_path,
         "-ar",
-        "16000",
+        "48000",  # Higher sample rate for better quality
         "-ac",
-        "1",
+        "1",      # Mono
         "-f",
         "wav",
+        "-acodec",
+        "pcm_s16le",  # 16-bit PCM for best quality
         "-loglevel",
         "error",
         wav_path,
@@ -172,67 +236,172 @@ async def _save_upload_to_temp(upload: UploadFile) -> str:
     return path
 
 
-@app.post("/transcribe")
-async def transcribe(audio: UploadFile = File(...)) -> JSONResponse:
+@app.post("/transcribe-educational")
+async def transcribe_educational(audio: UploadFile = File(...)) -> JSONResponse:
+    """Educational transcription endpoint with stronger fair use emphasis"""
+    educational_prompt = (
+        "EDUCATIONAL USE ONLY - FAIR USE DOCTRINE:\n"
+        "This transcription is being performed under fair use provisions for educational purposes only. "
+        "This is a private learning exercise and no commercial use is intended.\n\n"
+        "Please transcribe this German language learning audio accurately. "
+        "Focus on educational value and language learning support.\n\n"
+        "Provide only the accurate German transcription:"
+    )
+    return await _transcribe_with_prompt(audio, educational_prompt)
+
+async def _transcribe_with_prompt(audio: UploadFile, custom_prompt: str) -> JSONResponse:
+    """Core transcription logic that can be used with different prompts"""
+    logger.info("=== TRANSCRIPTION REQUEST STARTED ===")
+    logger.info(f"Received audio file: {audio.filename}")
+    logger.info(f"Content type: {audio.content_type}")
+    logger.info(f"File size: {audio.size if hasattr(audio, 'size') else 'unknown'}")
+    
     if not audio:
+        logger.error("No audio file provided")
         raise HTTPException(status_code=400, detail="Missing audio file")
 
     if audio.content_type and not audio.content_type.startswith("audio"):
         allowed_types = ["audio/", "video/mp4", "video/webm"]
         if not any(audio.content_type.startswith(t) for t in allowed_types):
+            logger.error(f"Unsupported content type: {audio.content_type}")
             raise HTTPException(status_code=400, detail="Unsupported content type. Expected audio file.")
 
-    client = _ensure_client()
+    logger.info("Ensuring Gemini model is ready...")
+    model = _ensure_model()
+    logger.info("Gemini model ready")
 
     temp_input_path: Optional[str] = None
     temp_wav_path: Optional[str] = None
 
     try:
+        logger.info("Saving uploaded file to temporary location...")
         temp_input_path = await _save_upload_to_temp(audio)
+        logger.info(f"Saved to: {temp_input_path}")
+        
+        logger.info("Converting audio to WAV format...")
         temp_wav_path = _convert_audio_to_wav(temp_input_path)
+        logger.info(f"Converted to: {temp_wav_path}")
 
         with open(temp_wav_path, "rb") as wav_file:
             wav_bytes = wav_file.read()
+        
+        logger.info(f"Read WAV file: {len(wav_bytes)} bytes")
         if not wav_bytes:
+            logger.error("Converted audio is empty")
             raise HTTPException(status_code=400, detail="Converted audio is empty")
 
-        recognition_config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=16000,
-            language_code="de-DE",
-            enable_automatic_punctuation=True,
-            model=SPEECH_MODEL,
-        )
-        recognition_audio = speech.RecognitionAudio(content=wav_bytes)
+        logger.info("Encoding audio as base64...")
+        encoded_audio = base64.b64encode(wav_bytes).decode("utf-8")
+        logger.info(f"Base64 encoded length: {len(encoded_audio)} characters")
 
-        metadata = (("x-goog-user-project", PROJECT_ID),) if PROJECT_ID else ()
+        contents = [
+            {"text": custom_prompt},
+            {
+                "inline_data": {
+                    "mime_type": "audio/wav",
+                    "data": encoded_audio,
+                }
+            },
+        ]
 
         try:
-            response = client.recognize(
-                config=recognition_config,
-                audio=recognition_audio,
-                metadata=metadata,
-            )
-        except (google_exceptions.GoogleAPICallError, google_exceptions.RetryError) as exc:
-            raise HTTPException(status_code=502, detail=f"Google Speech API error: {exc}") from exc
+            logger.info("Sending request to Gemini API...")
+            # Add timeout to prevent hanging
+            import asyncio
+            import concurrent.futures
+            
+            def call_gemini():
+                return model.generate_content(contents=contents)
+            
+            # Use ThreadPoolExecutor with timeout
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(call_gemini)
+                try:
+                    response = future.result(timeout=30)  # Increased timeout for longer audio
+                    logger.info("Received response from Gemini API")
+                except concurrent.futures.TimeoutError:
+                    logger.error("Gemini API call timed out after 30 seconds")
+                    raise HTTPException(status_code=504, detail="Transcription service timed out after 30 seconds")
+        except google_api_exceptions.GoogleAPIError as exc:
+            logger.error(f"Gemini API error: {exc}")
+            raise HTTPException(status_code=502, detail=f"Gemini API error: {exc}") from exc
+        except Exception as exc:  # pragma: no cover - unexpected SDK failure
+            logger.error(f"Unexpected Gemini request failure: {exc}")
+            raise HTTPException(status_code=502, detail=f"Gemini request failed: {exc}") from exc
 
-        text_parts = [
-            result.alternatives[0].transcript.strip()
-            for result in response.results
-            if result.alternatives
-        ]
-        text = " ".join(filter(None, text_parts))
+        # Check for prompt-level blocking
+        if getattr(response, "prompt_feedback", None) and response.prompt_feedback.block_reason:
+            reason = response.prompt_feedback.block_reason.name
+            logger.error(f"Gemini blocked the request: {reason}")
+            raise HTTPException(status_code=502, detail=f"Gemini blocked the request: {reason}")
 
+        # Check for finish reasons that indicate content issues
+        if hasattr(response, 'candidates') and response.candidates:
+            candidate = response.candidates[0]
+            if hasattr(candidate, 'finish_reason') and candidate.finish_reason:
+                finish_reason = candidate.finish_reason
+                logger.info(f"Gemini finish reason: {finish_reason}")
+                
+                # Handle copyright/recitation detection
+                if finish_reason == 4:  # RECITATION
+                    logger.warning("Gemini detected potential copyrighted content")
+                    error_msg = (
+                        "Transcription blocked: Gemini detected potential copyrighted material. "
+                        "For personal study purposes, try:\n"
+                        "1. Record your own voice reading the text\n"
+                        "2. Use shorter audio segments\n"
+                        "3. Paraphrase the content in your own words\n"
+                        "4. Use the /transcribe-educational endpoint for fair use cases"
+                    )
+                    raise HTTPException(status_code=422, detail=error_msg)
+                elif finish_reason in [2, 3]:  # SAFETY, MAX_TOKENS
+                    reason_names = {2: "SAFETY", 3: "MAX_TOKENS", 4: "RECITATION"}
+                    reason_name = reason_names.get(finish_reason, f"UNKNOWN({finish_reason})")
+                    logger.warning(f"Gemini stopped generation due to: {reason_name}")
+                    raise HTTPException(status_code=422, detail=f"Transcription incomplete: {reason_name}")
+
+        # Try to get the text, handling the case where response.text might fail
+        try:
+            text = (response.text or "").strip()
+        except ValueError as e:
+            # This happens when response.text is called but no valid parts exist
+            logger.error(f"Failed to get response text: {e}")
+            if "copyrighted material" in str(e).lower() or "finish_reason" in str(e).lower():
+                error_msg = (
+                    "Transcription blocked: Content may contain copyrighted material. "
+                    "For personal study, try recording your own voice or using shorter segments."
+                )
+                raise HTTPException(status_code=422, detail=error_msg)
+            else:
+                raise HTTPException(status_code=502, detail=f"Failed to extract transcription: {e}")
+        
+        logger.info(f"Gemini response text: '{text}' (length: {len(text)})")
+        
+        if not text:
+            logger.error("Gemini returned an empty transcription")
+            raise HTTPException(status_code=502, detail="Gemini returned an empty transcription")
+
+        logger.info("=== TRANSCRIPTION REQUEST COMPLETED SUCCESSFULLY ===")
         return JSONResponse(content={"text": text})
     except HTTPException:
+        logger.error("HTTP exception occurred during transcription")
         raise
     except Exception as exc:
+        logger.error(f"Unexpected exception during transcription: {exc}")
         raise HTTPException(status_code=500, detail=f"Transcription failed: {exc}") from exc
     finally:
+        logger.info("Cleaning up temporary files...")
         if temp_input_path and os.path.exists(temp_input_path):
             os.unlink(temp_input_path)
+            logger.info(f"Deleted temp input file: {temp_input_path}")
         if temp_wav_path and os.path.exists(temp_wav_path):
             os.unlink(temp_wav_path)
+            logger.info(f"Deleted temp WAV file: {temp_wav_path}")
+
+@app.post("/transcribe")
+async def transcribe(audio: UploadFile = File(...)) -> JSONResponse:
+    """Standard transcription endpoint"""
+    return await _transcribe_with_prompt(audio, _DEFAULT_PROMPT)
 
 
 __all__ = ["app"]

@@ -1,4 +1,5 @@
 fastapi
 uvicorn[standard]
-google-cloud-speech
+google-generativeai
 python-multipart
+python-dotenv

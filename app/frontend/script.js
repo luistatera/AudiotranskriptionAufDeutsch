@@ -37,9 +37,17 @@ function resetState() {
 }
 
 async function uploadAudio(blob) {
-  if (!blob || blob.size === 0) return;
+  if (!blob || blob.size === 0) {
+    console.warn('⚠️ No audio blob to upload or blob is empty');
+    return;
+  }
   
-  console.log('Uploading audio blob:', blob.size, 'bytes, type:', blob.type);
+  console.log('🎵 === STARTING AUDIO UPLOAD ===');
+  console.log('📊 Audio blob details:', {
+    size: blob.size,
+    type: blob.type,
+    lastModified: blob.lastModified || 'unknown'
+  });
   
   const formData = new FormData();
   
@@ -54,44 +62,61 @@ async function uploadAudio(blob) {
   }
   
   formData.append('audio', blob, filename);
+  console.log('📦 Created FormData with filename:', filename);
 
   try {
-    setStatusText('Uploading...');
+    setStatusText('Processing audio...');
+    console.log('🚀 Sending POST request to:', TRANSCRIBE_URL);
     
+    const startTime = Date.now();
     const response = await fetch(TRANSCRIBE_URL, {
       method: 'POST',
       body: formData,
     });
+    const requestTime = Date.now() - startTime;
 
-    console.log('Response status:', response.status);
+    console.log('📡 Response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      contentType: response.headers.get('content-type'),
+      requestTime: requestTime + 'ms'
+    });
 
     if (!response.ok) {
+      console.error('❌ Request failed with status:', response.status);
       const errorData = await response.json().catch(() => ({}));
-      console.error('Response error data:', errorData);
+      console.error('❌ Error response data:', errorData);
       throw new Error(errorData.detail || `HTTP ${response.status}`);
     }
 
+    console.log('✅ Request successful, parsing JSON...');
     const data = await response.json();
-    console.log('Response data:', data);
+    console.log('📋 Response data:', data);
     
     if (data.text) {
-      console.log('Appending text to transcript:', data.text);
+      console.log('✅ Transcription successful! Text:', data.text);
+      console.log('📝 Appending to transcript area...');
       appendTranscript(data.text);
+      console.log('🎵 === AUDIO UPLOAD COMPLETED SUCCESSFULLY ===');
     } else {
-      console.log('No text in response');
+      console.warn('⚠️ No text field in response data');
     }
     
     setStatusText(isRecording ? 'Recording' : 'Idle');
   } catch (error) {
-    console.error('Upload failed:', error);
+    console.error('❌ === AUDIO UPLOAD FAILED ===');
+    console.error('❌ Error details:', error);
     setStatusText(`Error: ${error.message}`);
   }
 }
 
 async function recordChunk() {
-  if (!isRecording || !mediaStream) return;
+  if (!isRecording || !mediaStream) {
+    console.warn('⚠️ Cannot record: isRecording =', isRecording, ', mediaStream =', !!mediaStream);
+    return;
+  }
   
-  console.log('Starting new recording chunk...');
+  console.log('🎙️ === STARTING NEW RECORDING CHUNK ===');
   
   // Try different audio formats for better compatibility
   let options = {};
@@ -106,13 +131,13 @@ async function recordChunk() {
   for (const format of formats) {
     if (MediaRecorder.isTypeSupported(format)) {
       options = { mimeType: format };
-      console.log('Using format:', format);
+      console.log('✅ Using supported format:', format);
       break;
     }
   }
   
   if (!options.mimeType) {
-    console.log('Using default format');
+    console.log('⚠️ No specific format supported, using default');
   }
   
   // Create a fresh MediaRecorder for each chunk
@@ -121,22 +146,28 @@ async function recordChunk() {
   const chunks = [];
   
   mediaRecorder.ondataavailable = (event) => {
-    console.log('Data available event, size:', event.data.size);
+    console.log('📊 Data available event, size:', event.data.size, 'bytes');
     if (event.data.size > 0) {
       chunks.push(event.data);
-      console.log('Added chunk, total chunks:', chunks.length);
+      console.log('✅ Added chunk, total chunks:', chunks.length);
+    } else {
+      console.warn('⚠️ Received empty data chunk');
     }
   };
   
   mediaRecorder.onstop = () => {
-    console.log('MediaRecorder stopped, chunks count:', chunks.length);
+    console.log('🛑 MediaRecorder stopped, chunks count:', chunks.length);
     if (chunks.length > 0) {
       // Use the same type as the MediaRecorder
       const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
-      console.log('Created blob:', blob.size, 'bytes, type:', blob.type);
+      console.log('📦 Created blob:', {
+        size: blob.size,
+        type: blob.type,
+        mimeType: mediaRecorder.mimeType
+      });
       uploadAudio(blob);
     } else {
-      console.log('No chunks to upload');
+      console.warn('⚠️ No chunks to upload - recording may have failed');
     }
     
     // Clear the reference to help with cleanup
@@ -147,15 +178,19 @@ async function recordChunk() {
     console.error('MediaRecorder error:', event.error);
   };
   
-  // Record for exactly 15 seconds (longer chunks are more reliable)
+  // Record for exactly 3 seconds (faster transcription)
+  console.log('▶️ Starting MediaRecorder...');
   mediaRecorder.start();
+  console.log('⏱️ Recording will stop automatically after 3 seconds');
   
   setTimeout(() => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
-      console.log('Stopping recording after 15 seconds');
+      console.log('⏰ 3 seconds elapsed, stopping recording...');
       mediaRecorder.stop();
+    } else {
+      console.warn('⚠️ MediaRecorder not in recording state after 3 seconds:', mediaRecorder?.state);
     }
-  }, 15000);
+  }, 3000);
 }
 
 async function startRecording() {
@@ -186,11 +221,11 @@ async function startRecording() {
   // Record first chunk immediately
   recordChunk();
   
-  // Then record a new chunk every 16 seconds (1 second gap for cleanup)
+  // Then record a new chunk every 4 seconds (1 second gap for cleanup)
   recordingInterval = setInterval(() => {
     // Add a small delay to ensure previous MediaRecorder is fully cleaned up
     setTimeout(recordChunk, 1000);
-  }, 16000);
+  }, 4000);
 }
 
 function stopRecording() {
