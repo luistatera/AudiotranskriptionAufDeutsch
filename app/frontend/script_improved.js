@@ -2,6 +2,7 @@ const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const statusEl = document.getElementById('status');
 const transcriptEl = document.getElementById('transcription');
+const clearBtn = document.getElementById('clearBtn');
 
 const urlConfig = new URL(window.location.href);
 const apiBaseOverride = urlConfig.searchParams.get('api');
@@ -269,6 +270,16 @@ function stopRecording() {
 // Event listeners
 startBtn.addEventListener('click', startRecording);
 stopBtn.addEventListener('click', stopRecording);
+clearBtn.addEventListener('click', () => {
+  transcriptEl.value = '';
+  transcriptEl.scrollTop = 0;
+
+  if (!isRecording) {
+    setStatusText('Ready for continuous recording');
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+});
 
 // Check browser support
 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {

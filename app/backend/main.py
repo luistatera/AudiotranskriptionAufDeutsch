@@ -101,7 +101,7 @@ _init_gemini_model()
 async def root() -> JSONResponse:
     """Root endpoint with API information"""
     return JSONResponse(content={
-        "message": "German Audio Transcription API with Gemini 2.5 Flash",
+        "message": "German Audio Transcription API with Gemini",
         "version": "1.0.0",
         "endpoints": {
             "/health": "Health check",
