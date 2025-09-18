@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lokale Sprachtranskription</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <main class="app-card">
+      <header>
+        <h1>German Speech Transcription</h1>
+        <p class="subtitle">Lokal, Whisper Small (anpassbar über WHISPER_MODEL)</p>
+      </header>
+
+      <section class="controls">
+        <button id="startBtn" type="button">Start</button>
+        <button id="stopBtn" type="button" disabled>Stop</button>
+      </section>
+
+      <p id="status" class="status">Idle</p>
+
+      <label class="textarea-label" for="transcription">Transkription</label>
+      <textarea
+        id="transcription"
+        rows="12"
+        placeholder="Der erkannte Text erscheint hier..."
+        readonly
+      ></textarea>
+    </main>
+  </body>
+</html>
