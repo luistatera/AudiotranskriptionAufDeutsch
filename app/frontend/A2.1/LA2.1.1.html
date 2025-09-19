@@ -137,20 +137,37 @@
       </section>
 
       <section class="lesson__speaking" aria-labelledby="speaking-title">
-        <h2 id="speaking-title" class="section-title">Answer/Listen</h2>
+        <h2 id="speaking-title" class="section-title">Sprache</h2>
         <p class="speaking__intro">Beantworte die folgenden Fragen mündlich:</p>
         <ul class="speaking__questions">
-          <li>Was machen sie?</li>
-          <li>Was kochen sie?</li>
-          <li>Was essen sie?</li>
-          <li>Was trinken sie?</li>
-          <li>Wie viele Leute sind da?</li>
-          <li>Was gefällt dir an diesem Bild am besten?</li>
-          <li>Was denkst du über dieses Bild?</li>
+          <li class="speaking__question">
+            <span class="speaking__question-text">Was kocht Markus?</span>
+            <button
+              type="button"
+              class="btn speaking__answer-btn"
+              data-question="Was kocht Markus?"
+            >Antwort</button>
+          </li>
+          <li class="speaking__question">
+            <span class="speaking__question-text">Was bereitet Anna für die Vorspeise vor?</span>
+            <button
+              type="button"
+              class="btn speaking__answer-btn"
+              data-question="Was bereitet Anna für die Vorspeise vor?"
+            >Antwort</button>
+          </li>
+          <li class="speaking__question">
+            <span class="speaking__question-text">Welche Art von Essen mögen beide gern?</span>
+            <button
+              type="button"
+              class="btn speaking__answer-btn"
+              data-question="Welche Art von Essen mögen beide gern?"
+            >Antwort</button>
+          </li>
         </ul>
 
         <div class="recording" role="group" aria-label="Sprachaufnahme">
-          <button id="answerBtn" type="button" class="btn btn--accent">Answer/Listen</button>
+          <button id="answerBtn" type="button" class="btn btn--accent">Sprache</button>
           <button id="stopBtn" type="button" class="btn" disabled>Stop</button>
           <span id="recordingIndicator" class="recording__indicator" aria-hidden="true">🎤</span>
         </div>
