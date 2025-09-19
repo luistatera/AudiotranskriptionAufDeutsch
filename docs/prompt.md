@@ -28,3 +28,92 @@ Developer deliverables:
 - You can find credentials in .env in the root of this project
 
 Please return a concise implementation plan plus the code changes required (files, snippets, explanations) to achieve the above.
+
+
+-------
+
+LA2.1.1:
+
+Prompt 1:
+
+The focus of this page is to help the German student to see the picture and understand the context. The student is learning german by listening to the audio and reading the text.
+
+Prepare this page with the following content:
+
+Show this picture of a group of people cooking together.
+/Users/luis.guimaraes/AudiotranskriptionAufDeutsch/app/frontend/A2.1/img/people_cooking.png
+
+On top of the text, add a button called "Play". 
+When the student clicks on the button, the audio will play this file:
+/Users/luis.guimaraes/AudiotranskriptionAufDeutsch/app/frontend/audio/LA2.1.1.mp3
+
+Show this text:
+---
+James: Hallo Anna, schön, dass du heute mitkochst. Ich koche gerade eine Gemüsesuppe.
+Frida: Oh, das riecht lecker, Markus! Welche Gemüse benutzt du?
+James: Ich habe Karotten, Kartoffeln, Zwiebeln und ein bisschen Sellerie. Und am Ende gebe ich frische Petersilie dazu.
+Frida: Sehr gesund! Ich mag Suppen besonders im Herbst, wenn es draußen kalt wird.
+James: Ja, genau. Und Suppe ist einfach zu kochen. Was bereitest du da gerade vor?
+Frida: Ich schneide Brot und mache kleine Bruschetta mit Tomaten und Basilikum.
+James: Mmmh, das klingt köstlich. Magst du italienisches Essen?
+Frida: Ja, sehr! Pasta, Pizza und frisches Brot sind meine Favoriten. Aber ich esse auch gern leichte Gerichte mit viel Gemüse.
+James: Ich auch. Am liebsten esse ich abends etwas Warmes. Zum Beispiel eine Suppe oder gebratene Nudeln mit Gemüse.
+Frida: Und isst du auch gern Fleisch?
+James: Nicht so oft. Lieber Fisch oder vegetarische Gerichte. Und du?
+Frida: Ähnlich. Ich mag Huhn, aber meistens esse ich Salate oder Nudeln.
+James: Super! Dann passt unser Menü heute perfekt zusammen: eine Suppe, Bruschetta und vielleicht ein Glas Wein.
+Frida: Ja, das wird ein richtig schöner Abend!
+---
+
+
+Prompt 2:
+1) After the picture there will be 5 phrases with options and the student needs to select the correct option to complete the phrase.
+---
+Aufgaben
+
+Markus kocht heute eine ______.
+a) Pizza
+b) Suppe ✅
+c) Salat
+
+Anna macht kleine Bruschetta mit ______.
+a) Tomaten und Basilikum ✅
+b) Käse und Schinken
+c) Kartoffeln und Zwiebeln
+
+Markus isst nicht so oft ______.
+a) Gemüse
+b) Fleisch ✅
+c) Brot
+
+Anna mag besonders gern ______.
+a) Pasta und frisches Brot ✅
+b) Fisch und Suppe
+c) Käse und Wurst
+
+Am Ende freuen sich beide auf ______.
+a) einen schönen Abend ✅
+b) einen Spaziergang im Park
+c) einen Besuch im Kino
+---
+
+After this step comes the last one:
+
+Prompt 3:
+
+Add to the page a "Answer/Listen" button. When the student clicks on the button, the page will show a microphone icon and the student 
+needs to record his voice answering the question:
+
+- Was machen sie?
+- Was kochen sie?
+- Was essen sie?
+- Was trinken sie?
+- Wie viele Leute sind da?
+- Was gefällt dir an diesem Bild am besten?
+- Was denkst du über dieses Bild?
+
+When the student is done, they need to click on the button "Stop". When it happens, do the same as this page is doing:
+/Users/luis.guimaraes/AudiotranskriptionAufDeutsch/app/frontend/index.html
+Recording the audio, sending the Gemini for transcription and showing the result in the textarea.
+
+
