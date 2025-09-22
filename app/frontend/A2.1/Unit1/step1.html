@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Step 1: Kochen mit Freunden · A2.1 Unit 1</title>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="shared/lesson-common.css" />
+    <link rel="stylesheet" href="shared/navigation.css" />
+    <link rel="stylesheet" href="lesson.css" />
+    
+    <!-- Scripts -->
+    <script src="../../../shared/app-navigation.js"></script>
+    <script src="unit-config.js"></script>
+    <script src="translations.js"></script>
+    <script src="shared/translation-menu.js" defer></script>
+    <script src="shared/navigation.js" defer></script>
+    <script src="lesson.js" defer></script>
+  </head>
+  <body>
+    <main class="lesson">
+      <!-- Navigation and progress will be injected by navigation.js -->
+      
+      <div class="lesson-step" id="step1" data-step="1">
+        <header class="lesson__header">
+          <div class="lesson__title-block">
+            <h1 class="lesson__title">Kochen mit Freunden</h1>
+            <p class="lesson__subtitle">
+              Höre dir das Gespräch an, lies den Text und beantworte die Fragen.
+            </p>
+          </div>
+          <div class="audio-player">
+            <button id="playButton" type="button" class="btn btn--primary">Abspielen</button>
+            <audio id="lessonAudio" src="audio/LA2.1.1.mp3" preload="metadata" controls style="display: none;"></audio>
+          </div>
+        </header>
+
+        <figure class="lesson__figure">
+          <img
+            src="img/people_cooking.png"
+            alt="Eine Gruppe von Freunden kocht gemeinsam in der Küche."
+            class="lesson__image"
+          />
+          <figcaption class="lesson__caption">Gemeinsam kochen macht Spaß!</figcaption>
+        </figure>
+
+        <section class="lesson__dialogue" aria-labelledby="dialogue-title">
+          <h2 id="dialogue-title" class="section-title">Dialog</h2>
+          <div class="dialogue">
+            <p><strong>James:</strong> Hallo Anna, schön, dass du heute mitkochst. Ich koche gerade eine Gemüsesuppe.</p>
+            <p><strong>Frida:</strong> Oh, das riecht lecker, Markus! Welche Gemüse benutzt du?</p>
+            <p><strong>James:</strong> Ich habe Karotten, Kartoffeln, Zwiebeln und ein bisschen Sellerie. Und am Ende gebe ich frische Petersilie dazu.</p>
+            <p><strong>Frida:</strong> Sehr gesund! Ich mag Suppen besonders im Herbst, wenn es draußen kalt wird.</p>
+            <p><strong>James:</strong> Ja, genau. Und Suppe ist einfach zu kochen. Was bereitest du da gerade vor?</p>
+            <p><strong>Frida:</strong> Ich schneide Brot und mache kleine Bruschetta mit Tomaten und Basilikum.</p>
+            <p><strong>James:</strong> Mmmh, das klingt köstlich. Magst du italienisches Essen?</p>
+            <p><strong>Frida:</strong> Ja, sehr! Pasta, Pizza und frisches Brot sind meine Favoriten. Aber ich esse auch gern leichte Gerichte mit viel Gemüse.</p>
+            <p><strong>James:</strong> Ich auch. Am liebsten esse ich abends etwas Warmes. Zum Beispiel eine Suppe oder gebratene Nudeln mit Gemüse.</p>
+            <p><strong>Frida:</strong> Und isst du auch gern Fleisch?</p>
+            <p><strong>James:</strong> Nicht so oft. Lieber Fisch oder vegetarische Gerichte. Und du?</p>
+            <p><strong>Frida:</strong> Ähnlich. Ich mag Huhn, aber meistens esse ich Salate oder Nudeln.</p>
+            <p><strong>James:</strong> Super! Dann passt unser Menü heute perfekt zusammen: eine Suppe, Bruschetta und vielleicht ein Glas Wein.</p>
+            <p><strong>Frida:</strong> Ja, das wird ein richtig schöner Abend!</p>
+          </div>
+        </section>
+
+        <section class="lesson__tasks" aria-labelledby="tasks-title">
+          <h2 id="tasks-title" class="section-title">Aufgaben</h2>
+          <div class="quiz" role="group" aria-label="Multiple-Choice-Aufgaben">
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Markus kocht heute eine ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option">
+                  <input type="radio" name="question1" value="Pizza" /> Pizza
+                </label>
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question1" value="Suppe" /> Suppe
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question1" value="Salat" /> Salat
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Anna macht kleine Bruschetta mit ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question2" value="Tomaten und Basilikum" /> Tomaten und Basilikum
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question2" value="Käse und Schinken" /> Käse und Schinken
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question2" value="Kartoffeln und Zwiebeln" /> Kartoffeln und Zwiebeln
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Markus isst nicht so oft ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option">
+                  <input type="radio" name="question3" value="Gemüse" /> Gemüse
+                </label>
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question3" value="Fleisch" /> Fleisch
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question3" value="Brot" /> Brot
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Anna mag besonders gern ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question4" value="Pasta und frisches Brot" /> Pasta und frisches Brot
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question4" value="Fisch und Suppe" /> Fisch und Suppe
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question4" value="Käse und Wurst" /> Käse und Wurst
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Am Ende freuen sich beide auf ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question5" value="einen schönen Abend" /> einen schönen Abend
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question5" value="einen Spaziergang im Park" /> einen Spaziergang im Park
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question5" value="einen Besuch im Kino" /> einen Besuch im Kino
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- Navigation will be injected here by navigation.js -->
+    </main>
+
+    <script>
+      /**
+       * Step 1 specific functionality
+       * Quiz handling for comprehension questions
+       */
+      
+      // Wait for DOM to be ready
+      document.addEventListener('DOMContentLoaded', function() {
+        initializeStep1();
+      });
+
+      function initializeStep1() {
+        setupAudioPlayer();
+        setupQuizFunctionality();
+        setupTranslatableElements();
+      }
+
+      function setupAudioPlayer() {
+        const playButton = document.getElementById('playButton');
+        const lessonAudio = document.getElementById('lessonAudio');
+
+        if (!playButton || !lessonAudio) {
+          console.warn('Audio controls not found in step 1');
+          return;
+        }
+
+        playButton.addEventListener('click', () => {
+          if (lessonAudio.paused) {
+            lessonAudio.play();
+          } else {
+            lessonAudio.pause();
+          }
+        });
+
+        lessonAudio.addEventListener('play', () => {
+          playButton.textContent = 'Pause';
+        });
+
+        lessonAudio.addEventListener('pause', () => {
+          playButton.textContent = 'Play';
+        });
+
+        lessonAudio.addEventListener('ended', () => {
+          playButton.textContent = 'Play';
+        });
+      }
+
+      function setupQuizFunctionality() {
+        const quizItems = document.querySelectorAll('[data-question]');
+        
+        quizItems.forEach((item) => {
+          const feedback = item.querySelector('.quiz__feedback');
+          const labels = item.querySelectorAll('.quiz__option');
+          
+          labels.forEach((label) => {
+            const input = label.querySelector('input[type="radio"]');
+            if (!input) return;
+            
+            input.addEventListener('change', () => {
+              // Reset all styles
+              labels.forEach((lbl) => lbl.classList.remove('is-correct', 'is-incorrect'));
+              feedback.classList.remove('quiz__feedback--correct', 'quiz__feedback--incorrect');
+
+              const isCorrect = label.hasAttribute('data-correct');
+              label.classList.add(isCorrect ? 'is-correct' : 'is-incorrect');
+              
+              if (feedback) {
+                if (isCorrect) {
+                  feedback.textContent = 'Richtig! Gut gemacht.';
+                  feedback.classList.add('quiz__feedback--correct');
+                } else {
+                  feedback.textContent = 'Nicht ganz. Versuche es noch einmal.';
+                  feedback.classList.add('quiz__feedback--incorrect');
+                }
+              }
+            });
+          });
+        });
+      }
+
+      function setupTranslatableElements() {
+        // Define step-specific translatable elements
+        window.getTranslatableElements = function() {
+          const elements = [];
+          
+          // Title and subtitle
+          const title = document.querySelector('.lesson__title');
+          const subtitle = document.querySelector('.lesson__subtitle');
+          if (title) elements.push({ element: title, text: title.textContent.trim() });
+          if (subtitle) elements.push({ element: subtitle, text: subtitle.textContent.trim() });
+
+          // Figure caption
+          const caption = document.querySelector('.lesson__caption');
+          if (caption) elements.push({ element: caption, text: caption.textContent.trim() });
+
+          // Section titles
+          const sectionTitles = document.querySelectorAll('.section-title');
+          sectionTitles.forEach(title => {
+            elements.push({ element: title, text: title.textContent.trim() });
+          });
+
+          // Dialogue paragraphs
+          const dialogueParagraphs = document.querySelectorAll('.dialogue p');
+          dialogueParagraphs.forEach(p => {
+            const fullText = p.textContent.trim();
+            const strongElement = p.querySelector('strong');
+            if (strongElement) {
+              // Extract just the dialogue text without the speaker name
+              const speakerText = strongElement.textContent;
+              const dialogueText = fullText.replace(speakerText, '').trim();
+              if (dialogueText) {
+                elements.push({ element: p, text: dialogueText, hasStrong: true });
+              }
+            } else {
+              elements.push({ element: p, text: fullText });
+            }
+          });
+
+          // Quiz prompts
+          const quizPrompts = document.querySelectorAll('.quiz__prompt');
+          quizPrompts.forEach(prompt => {
+            elements.push({ element: prompt, text: prompt.textContent.trim() });
+          });
+
+          // Quiz options
+          const quizOptions = document.querySelectorAll('.quiz__option');
+          quizOptions.forEach(option => {
+            const input = option.querySelector('input');
+            if (input) {
+              const text = option.textContent.replace(input.value, '').trim();
+              if (text) {
+                elements.push({ element: option, text: text });
+              }
+            }
+          });
+
+          // Buttons
+          const playBtn = document.getElementById('playButton');
+          if (playBtn) {
+            elements.push({ element: playBtn, text: playBtn.textContent.trim() });
+          }
+
+          return elements;
+        };
+      }
+    </script>
+  </body>
+</html>

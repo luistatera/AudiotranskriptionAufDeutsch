@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LA2.1.1 · Kochen mit Freunden</title>
+    <link rel="stylesheet" href="lesson.css" />
+    <script src="translations.js"></script>
+    <script src="lesson.js" defer></script>
+  </head>
+  <body>
+    <!-- Burger Menu Button -->
+    <button id="burgerMenuBtn" class="burger-menu-btn" aria-label="Open translation menu">
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+    </button>
+
+    <!-- Translation Menu Panel -->
+    <div id="translationPanel" class="translation-panel">
+      <div class="translation-panel__header">
+        <h3 class="translation-panel__title">Translation Settings</h3>
+        <button id="closePanelBtn" class="close-panel-btn" aria-label="Close menu">&times;</button>
+      </div>
+      <div class="translation-panel__content">
+        <label for="languageSelect" class="translation-label">Show translation below the original text:</label>
+        <select id="languageSelect" class="language-select">
+          <option value="">No</option>
+          <option value="pl">Polish 🇵🇱</option>
+          <option value="ru">Russian 🇷🇺</option>
+          <option value="fr">French 🇫🇷</option>
+          <option value="en">English 🇬🇧</option>
+          <option value="it">Italian 🇮🇹</option>
+          <option value="nl">Dutch 🇳🇱</option>
+          <option value="es">Spanish 🇪🇸</option>
+          <option value="tr">Turkish 🇹🇷</option>
+          <option value="ar">Arabic 🌍</option>
+          <option value="zh">Chinese 🇨🇳</option>
+          <option value="pt">Portuguese 🇧🇷</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="menuOverlay" class="menu-overlay"></div>
+
+    <main class="lesson">
+      <!-- Step Progress Indicator -->
+      <div class="step-progress">
+        <div class="step-progress__bar">
+          <div class="step-progress__fill" id="progressFill"></div>
+        </div>
+        <div class="step-progress__info">
+          <span class="step-progress__current" id="currentStep">1</span>
+          <span class="step-progress__separator">/</span>
+          <span class="step-progress__total">4</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Kochen mit Freunden, Dialog, Aufgaben -->
+      <div class="lesson-step" id="step1" data-step="1">
+        <header class="lesson__header">
+          <div class="lesson__title-block">
+            <h1 class="lesson__title">Kochen mit Freunden</h1>
+            <p class="lesson__subtitle">
+              Höre dir das Gespräch an, lies den Text und beantworte die Fragen.
+            </p>
+          </div>
+          <div class="audio-player">
+            <button id="playButton" type="button" class="btn btn--primary">Play</button>
+            <audio id="lessonAudio" src="audio/LA2.1.1.mp3" preload="none"></audio>
+          </div>
+        </header>
+
+        <figure class="lesson__figure">
+          <img
+            src="img/people_cooking.png"
+            alt="Eine Gruppe von Freunden kocht gemeinsam in der Küche."
+            class="lesson__image"
+          />
+          <figcaption class="lesson__caption">Gemeinsam kochen macht Spaß!</figcaption>
+        </figure>
+
+        <section class="lesson__dialogue" aria-labelledby="dialogue-title">
+          <h2 id="dialogue-title" class="section-title">Dialog</h2>
+          <div class="dialogue">
+            <p><strong>James:</strong> Hallo Anna, schön, dass du heute mitkochst. Ich koche gerade eine Gemüsesuppe.</p>
+            <p><strong>Frida:</strong> Oh, das riecht lecker, Markus! Welche Gemüse benutzt du?</p>
+            <p><strong>James:</strong> Ich habe Karotten, Kartoffeln, Zwiebeln und ein bisschen Sellerie. Und am Ende gebe ich frische Petersilie dazu.</p>
+            <p><strong>Frida:</strong> Sehr gesund! Ich mag Suppen besonders im Herbst, wenn es draußen kalt wird.</p>
+            <p><strong>James:</strong> Ja, genau. Und Suppe ist einfach zu kochen. Was bereitest du da gerade vor?</p>
+            <p><strong>Frida:</strong> Ich schneide Brot und mache kleine Bruschetta mit Tomaten und Basilikum.</p>
+            <p><strong>James:</strong> Mmmh, das klingt köstlich. Magst du italienisches Essen?</p>
+            <p><strong>Frida:</strong> Ja, sehr! Pasta, Pizza und frisches Brot sind meine Favoriten. Aber ich esse auch gern leichte Gerichte mit viel Gemüse.</p>
+            <p><strong>James:</strong> Ich auch. Am liebsten esse ich abends etwas Warmes. Zum Beispiel eine Suppe oder gebratene Nudeln mit Gemüse.</p>
+            <p><strong>Frida:</strong> Und isst du auch gern Fleisch?</p>
+            <p><strong>James:</strong> Nicht so oft. Lieber Fisch oder vegetarische Gerichte. Und du?</p>
+            <p><strong>Frida:</strong> Ähnlich. Ich mag Huhn, aber meistens esse ich Salate oder Nudeln.</p>
+            <p><strong>James:</strong> Super! Dann passt unser Menü heute perfekt zusammen: eine Suppe, Bruschetta und vielleicht ein Glas Wein.</p>
+            <p><strong>Frida:</strong> Ja, das wird ein richtig schöner Abend!</p>
+          </div>
+        </section>
+
+        <section class="lesson__tasks" aria-labelledby="tasks-title">
+          <h2 id="tasks-title" class="section-title">Aufgaben</h2>
+          <div class="quiz" role="group" aria-label="Multiple-Choice-Aufgaben">
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Markus kocht heute eine ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option">
+                  <input type="radio" name="question1" value="Pizza" /> Pizza
+                </label>
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question1" value="Suppe" /> Suppe
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question1" value="Salat" /> Salat
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Anna macht kleine Bruschetta mit ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question2" value="Tomaten und Basilikum" /> Tomaten und Basilikum
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question2" value="Käse und Schinken" /> Käse und Schinken
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question2" value="Kartoffeln und Zwiebeln" /> Kartoffeln und Zwiebeln
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Markus isst nicht so oft ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option">
+                  <input type="radio" name="question3" value="Gemüse" /> Gemüse
+                </label>
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question3" value="Fleisch" /> Fleisch
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question3" value="Brot" /> Brot
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Anna mag besonders gern ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question4" value="Pasta und frisches Brot" /> Pasta und frisches Brot
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question4" value="Fisch und Suppe" /> Fisch und Suppe
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question4" value="Käse und Wurst" /> Käse und Wurst
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+
+            <article class="quiz__item" data-question>
+              <h3 class="quiz__prompt">Am Ende freuen sich beide auf ______.</h3>
+              <div class="quiz__options">
+                <label class="quiz__option" data-correct>
+                  <input type="radio" name="question5" value="einen schönen Abend" /> einen schönen Abend
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question5" value="einen Spaziergang im Park" /> einen Spaziergang im Park
+                </label>
+                <label class="quiz__option">
+                  <input type="radio" name="question5" value="einen Besuch im Kino" /> einen Besuch im Kino
+                </label>
+              </div>
+              <p class="quiz__feedback" aria-live="polite"></p>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- Step 2: Sprache -->
+      <div class="lesson-step" id="step2" data-step="2" style="display: none;">
+        <header class="lesson__header">
+          <div class="lesson__title-block">
+            <h1 class="lesson__title">Sprache</h1>
+            <p class="lesson__subtitle">
+              Beantworte die folgenden Fragen mündlich.
+            </p>
+          </div>
+        </header>
+
+        <section class="lesson__speaking" aria-labelledby="speaking-title">
+          <h2 id="speaking-title" class="section-title">Sprache</h2>
+          <p class="speaking__intro">Beantworte die folgenden Fragen mündlich:</p>
+          <ul class="speaking__questions">
+            <li class="speaking__question">
+              <span class="speaking__question-text">Was kocht Markus?</span>
+              <button
+                type="button"
+                class="btn speaking__answer-btn"
+                data-question="Was kocht Markus?"
+              >Antwort</button>
+              <p class="speaking__transcription" aria-live="polite"></p>
+            </li>
+            <li class="speaking__question">
+              <span class="speaking__question-text">Was bereitet Anna für die Vorspeise vor?</span>
+              <button
+                type="button"
+                class="btn speaking__answer-btn"
+                data-question="Was bereitet Anna für die Vorspeise vor?"
+              >Antwort</button>
+              <p class="speaking__transcription" aria-live="polite"></p>
+            </li>
+            <li class="speaking__question">
+              <span class="speaking__question-text">Welche Art von Essen mögen beide gern?</span>
+              <button
+                type="button"
+                class="btn speaking__answer-btn"
+                data-question="Welche Art von Essen mögen beide gern?"
+              >Antwort</button>
+              <p class="speaking__transcription" aria-live="polite"></p>
+            </li>
+          </ul>
+
+          <div class="recording">
+            <span id="recordingIndicator" class="recording__indicator" aria-hidden="true">🎤</span>
+          </div>
+
+          <p id="status" class="recording__status" aria-live="polite">Bereit</p>
+        </section>
+      </div>
+
+      <!-- Step 3: Perfekt Exercise -->
+      <div class="lesson-step" id="step3" data-step="3" style="display: none;">
+        <header class="lesson__header">
+          <div class="lesson__title-block">
+            <h1 class="lesson__title">🎧 Hören & Ziehen – Perfekt</h1>
+            <p class="lesson__subtitle">
+              Höre den Text und ziehe die richtige Perfektform in jede Lücke.
+            </p>
+          </div>
+        </header>
+
+        <section class="lesson__perfekt" aria-labelledby="perfekt-title">
+          <div class="perfekt-exercise">
+            <div class="perfekt-audio">
+              <p class="perfekt-audio-text">
+                <em>Gestern hat James eine Gemüsesuppe gekocht. Frida hat Brot geschnitten und Bruschetta gemacht. Dann haben sie den Tisch gedeckt und zusammen gegessen. Am Ende ist ein Freund gekommen und sie haben Wein getrunken.</em>
+              </p>
+              <div class="audio-player">
+                <button id="perfektPlayButton" type="button" class="btn btn--primary">Play Audio</button>
+                <audio id="perfektAudio" preload="none">
+                  <source src="audio/LA2.1.1.mp3" type="audio/mpeg">
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            </div>
+
+            <div class="perfekt-instructions">
+              <p class="perfekt-instruction-text">Höre den Text. Ziehe die richtige Perfektform in jede Lücke.</p>
+            </div>
+
+            <div class="perfekt-exercise-area">
+              <div class="perfekt-table">
+                <div class="perfekt-table-header">
+                  <div class="perfekt-col-infinitive">Infinitiv</div>
+                  <div class="perfekt-col-perfect">Perfekt (Drag hier)</div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="kochen">
+                  <div class="perfekt-infinitive">kochen</div>
+                  <div class="perfekt-drop-zone" data-correct="hat gekocht">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="schneiden">
+                  <div class="perfekt-infinitive">schneiden</div>
+                  <div class="perfekt-drop-zone" data-correct="hat geschnitten">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="machen">
+                  <div class="perfekt-infinitive">machen</div>
+                  <div class="perfekt-drop-zone" data-correct="hat gemacht">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="decken">
+                  <div class="perfekt-infinitive">decken</div>
+                  <div class="perfekt-drop-zone" data-correct="hat gedeckt">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="kommen">
+                  <div class="perfekt-infinitive">kommen</div>
+                  <div class="perfekt-drop-zone" data-correct="ist gekommen">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="trinken">
+                  <div class="perfekt-infinitive">trinken</div>
+                  <div class="perfekt-drop-zone" data-correct="hat getrunken">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="perfekt-word-bank">
+                <h3 class="word-bank-title">Wortbank</h3>
+                <div class="draggable-words">
+                  <div class="draggable-word" draggable="true" data-value="hat gekocht">hat gekocht</div>
+                  <div class="draggable-word" draggable="true" data-value="hat geschnitten">hat geschnitten</div>
+                  <div class="draggable-word" draggable="true" data-value="hat gemacht">hat gemacht</div>
+                  <div class="draggable-word" draggable="true" data-value="hat gedeckt">hat gedeckt</div>
+                  <div class="draggable-word" draggable="true" data-value="ist gekommen">ist gekommen</div>
+                  <div class="draggable-word" draggable="true" data-value="hat getrunken">hat getrunken</div>
+                </div>
+              </div>
+
+              <div class="perfekt-controls">
+                <button id="checkPerfektAnswers" type="button" class="btn btn--primary">Antworten prüfen</button>
+                <button id="resetPerfektExercise" type="button" class="btn btn--ghost">Zurücksetzen</button>
+              </div>
+
+              <div id="perfektFeedback" class="perfekt-feedback" aria-live="polite"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Step 4: Frida Exercise -->
+      <div class="lesson-step" id="step4" data-step="4" style="display: none;">
+        <header class="lesson__header">
+          <div class="lesson__title-block">
+            <h1 class="lesson__title">🎧 Frida erzählt ihren Tag</h1>
+            <p class="lesson__subtitle">
+              Höre den Dialog und ordne die Bilder in die richtige Reihenfolge.
+            </p>
+          </div>
+        </header>
+
+        <section class="lesson__frida-exercise" aria-labelledby="frida-title">
+          <div class="frida-exercise">
+            <div class="frida-instructions">
+              <p class="frida-instruction-text">Höre den Dialog. Ordne die Bilder in die richtige Reihenfolge.</p>
+            </div>
+
+            <div class="frida-audio">
+              <div class="audio-player">
+                <button id="fridaPlayButton" type="button" class="btn btn--primary">Audio abspielen</button>
+                <audio id="fridaAudio" src="audio/LA2.1.2.mp3" preload="none">
+                  <source src="audio/LA2.1.2.mp3" type="audio/mpeg">
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            </div>
+
+            <div class="frida-image-board">
+              <h3 class="image-board-title">Ordne Fridas Tag chronologisch:</h3>
+              <div id="fridaImageContainer" class="frida-images-container">
+                <!-- Images will be populated by JavaScript with proper shuffle -->
+              </div>
+            </div>
+
+            <div class="frida-controls">
+              <button id="resetFridaOrder" type="button" class="btn btn--ghost">Zurücksetzen</button>
+              <button id="checkFridaOrder" type="button" class="btn btn--primary">Prüfen</button>
+            </div>
+
+            <div id="fridaFeedback" class="frida-feedback" aria-live="polite"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Navigation Controls -->
+      <nav class="lesson-navigation" aria-label="Schritt Navigation">
+        <button id="prevBtn" type="button" class="btn btn--ghost lesson-nav-btn" disabled>
+          ← Zurück
+        </button>
+        <button id="nextBtn" type="button" class="btn btn--primary lesson-nav-btn">
+          Weiter →
+        </button>
+      </nav>
+    </main>
+  </body>
+</html>

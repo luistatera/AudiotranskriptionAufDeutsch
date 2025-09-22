@@ -1,0 +1,243 @@
+# Cursor Rules for German Language Learning App
+
+## Project Overview
+This is a multi-language German learning application with frontend lessons and backend services. The app features audio, images, interactive exercises, and a comprehensive translation system supporting 12 languages.
+
+## Architecture Principles
+
+### 🏗️ **Project Structure**
+- Maintain clear separation between frontend (`app/frontend/`) and backend (`app/backend/`)
+- Organize lessons by level (A2.1, A2.2, etc.) and units within each level
+- Keep assets (audio, images) co-located with their respective lessons
+- Store documentation in `docs/` directory
+- Use `material/` for source content and exercise specifications
+
+### 📂 **File Organization Standards**
+
+#### Frontend Structure
+```
+app/frontend/
+├── [Level]/                    # e.g., A2.1, B1.1
+│   ├── Unit[N]/               # e.g., Unit1, Unit2
+│   │   ├── audio/             # Lesson audio files
+│   │   ├── img/               # Lesson images
+│   │   │   └── [Character]/   # Character-specific images (e.g., Frida/)
+│   │   ├── dialogs/           # Dialog content (.md files)
+│   │   ├── LA[Level].[Unit].html # Main lesson file
+│   │   ├── lesson.css         # Lesson-specific styles
+│   │   ├── lesson.js          # Core lesson functionality
+│   │   └── translations.js    # Translation data
+│   └── Unit[N+1]/
+├── index.html                 # Main app entry point
+├── script.js                 # Global app logic
+└── styles.css                # Global styles
+```
+
+#### Backend Structure
+```
+app/backend/
+├── main.py                    # FastAPI main application
+├── requirements.txt           # Python dependencies
+├── models/                    # Data models
+├── services/                  # Business logic
+├── utils/                     # Helper functions
+└── tests/                     # Backend tests
+```
+
+## 🎨 **Frontend Development Rules**
+
+### HTML Guidelines
+- Use semantic HTML5 elements (`<section>`, `<article>`, `<nav>`, etc.)
+- Maintain consistent class naming: `lesson__element`, `quiz__component`
+- Include proper ARIA labels for accessibility
+- Structure lessons consistently across all units
+- Always include the translation system burger menu in lesson pages
+
+### CSS Guidelines
+- Use BEM methodology for class naming: `.block__element--modifier`
+- Organize CSS in this order: layout → typography → colors → interactions
+- Use CSS custom properties for theming and consistency
+- Keep lesson-specific styles in `lesson.css`, global styles in `styles.css`
+- Ensure responsive design for mobile and desktop
+- Maintain consistent spacing using rem/em units
+
+### JavaScript Guidelines
+- Write modular, reusable functions
+- Use modern ES6+ syntax (const/let, arrow functions, destructuring)
+- Implement proper error handling with try/catch blocks
+- Document functions with JSDoc comments
+- Keep lesson logic in `lesson.js`, global logic in main script files
+- Always check for DOM element existence before manipulation
+
+## 🔧 **Backend Development Rules**
+
+### Python/FastAPI Guidelines
+- Follow PEP 8 style guide
+- Use type hints for all functions and variables
+- Implement proper error handling and HTTP status codes
+- Create modular services for different functionalities
+- Use dependency injection for database and external services
+- Write comprehensive docstrings for all functions and classes
+
+### API Design
+- Follow RESTful conventions
+- Use proper HTTP methods (GET, POST, PUT, DELETE)
+- Implement consistent error response format
+- Version APIs when breaking changes are needed
+- Include request/response validation with Pydantic models
+
+## 🌍 **Translation System Rules**
+
+### Translation Data Management
+- All user-facing text MUST be translatable
+- Store translations in `translations.js` files within each unit
+- Use the exact German text as the key in translation objects
+- Support all 12 languages: Polish, Russian, French, English, Italian, Dutch, Spanish, Turkish, Arabic, Chinese, Portuguese
+- Maintain consistent translation structure:
+```javascript
+window.TRANSLATIONS = {
+  "German text": {
+    en: "English translation",
+    pl: "Polish translation",
+    // ... all 12 languages
+  }
+};
+```
+
+### Content Guidelines
+- Write German content first, then add translations
+- Keep translations culturally appropriate and contextually accurate
+- Use professional tone for instructional content
+- Test translations with native speakers when possible
+- Document any cultural context needed for proper translation
+
+## 📁 **Asset Management Rules**
+
+### Audio Files
+- Use consistent naming: `LA[Level].[Unit].[Exercise].mp3`
+- Keep audio files under 5MB when possible
+- Use MP3 format for compatibility
+- Store audio files in respective unit's `audio/` directory
+- Include transcriptions in dialog files
+
+### Image Files
+- Use descriptive filenames that indicate content
+- Optimize images for web (WebP preferred, PNG/JPG acceptable)
+- Organize character-specific images in subdirectories
+- Maintain consistent aspect ratios within exercise types
+- Include alt text for all images
+
+### Dialog Content
+- Store dialog content in markdown files (`.md`)
+- Use consistent formatting for speaker identification
+- Include timing information when available
+- Translate dialog content completely
+
+## 📝 **Documentation Standards**
+
+### Code Documentation
+- Write clear, concise comments for complex logic
+- Document all public functions and their parameters
+- Include usage examples for reusable components
+- Maintain up-to-date README files for each major component
+
+### Lesson Documentation
+- Document lesson objectives and learning outcomes
+- Include teacher notes for complex exercises
+- Maintain exercise specifications in `material/` directory
+- Document any special technical requirements
+
+## 🧪 **Code Quality Rules**
+
+### General Principles
+- Write DRY (Don't Repeat Yourself) code
+- Keep functions small and focused on single responsibilities
+- Use meaningful variable and function names
+- Implement proper error handling throughout
+- Write code that is self-documenting when possible
+
+### Testing Requirements
+- Write unit tests for all utility functions
+- Test translation system functionality
+- Validate all user inputs
+- Test responsive design on multiple devices
+- Verify audio and image loading across browsers
+
+### Performance Guidelines
+- Optimize images and audio for web delivery
+- Minimize JavaScript bundle sizes
+- Use lazy loading for non-critical resources
+- Cache translation data in localStorage
+- Implement efficient DOM manipulation
+
+## 🔄 **Development Workflow**
+
+### File Naming Conventions
+- Use kebab-case for directories and files: `unit-1`, `lesson-audio.mp3`
+- Use PascalCase for JavaScript classes: `TranslationManager`
+- Use camelCase for JavaScript functions and variables: `showTranslation`
+- Use SCREAMING_SNAKE_CASE for constants: `SUPPORTED_LANGUAGES`
+
+### Version Control
+- Commit frequently with descriptive messages
+- Use conventional commit format: `feat:`, `fix:`, `docs:`, `style:`
+- Keep commits focused on single changes
+- Update documentation with code changes
+- Tag releases with semantic versioning
+
+### Deployment Preparation
+- Ensure all translations are complete before lesson deployment
+- Validate all audio and image links work correctly
+- Test lessons across different browsers
+- Verify mobile responsiveness
+- Check loading performance
+
+## 🚀 **Scalability Considerations**
+
+### Adding New Lessons
+- Follow existing unit structure exactly
+- Copy and modify existing lesson templates
+- Update navigation systems to include new lessons
+- Test integration with translation system
+- Update documentation with new content
+
+### Adding New Languages
+1. Add language option to HTML select elements
+2. Update all translation objects with new language
+3. Test display and formatting for new language
+4. Update documentation with language addition
+
+### Performance Monitoring
+- Monitor bundle sizes as project grows
+- Track loading times for audio and images
+- Optimize translation data structure for large datasets
+- Consider CDN for static assets when needed
+
+## 🎯 **Best Practices Summary**
+
+1. **Modularity**: Keep components independent and reusable
+2. **Consistency**: Follow established patterns throughout the project
+3. **Accessibility**: Ensure all content is accessible to all users
+4. **Performance**: Optimize for fast loading and smooth interactions
+5. **Maintainability**: Write code that future developers can understand
+6. **Documentation**: Keep all documentation current and comprehensive
+7. **Translation**: Never add content without complete translations
+8. **Testing**: Validate all functionality before deployment
+
+## 🔍 **Code Review Checklist**
+
+Before submitting any code changes, verify:
+- [ ] All user-facing text is translated to all 12 languages
+- [ ] Code follows established naming conventions
+- [ ] Functions are properly documented
+- [ ] Error handling is implemented
+- [ ] Responsive design is maintained
+- [ ] Audio and image assets are optimized
+- [ ] Translation system integration works correctly
+- [ ] Code is modular and reusable
+- [ ] Performance impact is minimal
+- [ ] Documentation is updated
+
+---
+
+**Remember**: This is an educational application that will serve learners from many cultural backgrounds. Always prioritize clarity, accessibility, and inclusive design in all development decisions.

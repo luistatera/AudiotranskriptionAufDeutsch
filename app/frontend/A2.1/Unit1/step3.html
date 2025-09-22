@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Step 3: Hören & Ziehen – Perfekt · A2.1 Unit 1</title>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="shared/lesson-common.css" />
+    <link rel="stylesheet" href="shared/navigation.css" />
+    <link rel="stylesheet" href="lesson.css" />
+    
+    <!-- Scripts -->
+    <script src="../../../shared/app-navigation.js"></script>
+    <script src="unit-config.js"></script>
+    <script src="translations.js"></script>
+    <script src="shared/translation-menu.js" defer></script>
+    <script src="shared/navigation.js" defer></script>
+    <script src="lesson.js" defer></script>
+  </head>
+  <body>
+    <main class="lesson">
+      <!-- Navigation and progress will be injected by navigation.js -->
+      
+      <div class="lesson-step" id="step3" data-step="3">
+        <header class="lesson__header">
+          <div class="lesson__title-block">
+            <h1 class="lesson__title">🎧 Hören & Ziehen – Perfekt</h1>
+            <p class="lesson__subtitle">
+              Höre den Text und ziehe die richtige Perfektform in jede Lücke.
+            </p>
+          </div>
+        </header>
+
+        <section class="lesson__perfekt" aria-labelledby="perfekt-title">
+          <div class="perfekt-exercise">
+            <div class="perfekt-audio">
+              <p class="perfekt-audio-text">
+                <em>Gestern hat James eine Gemüsesuppe gekocht. Frida hat Brot geschnitten und Bruschetta gemacht. Dann haben sie den Tisch gedeckt und zusammen gegessen. Am Ende ist ein Freund gekommen und sie haben Wein getrunken.</em>
+              </p>
+              <div class="audio-player">
+                <button id="perfektPlayButton" type="button" class="btn btn--primary">Play Audio</button>
+                <audio id="perfektAudio" preload="none">
+                  <source src="audio/LA2.1.1.mp3" type="audio/mpeg">
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            </div>
+
+            <div class="perfekt-instructions">
+              <p class="perfekt-instruction-text">Höre den Text. Ziehe die richtige Perfektform in jede Lücke.</p>
+            </div>
+
+            <div class="perfekt-exercise-area">
+              <div class="perfekt-table">
+                <div class="perfekt-table-header">
+                  <div class="perfekt-col-infinitive">Infinitiv</div>
+                  <div class="perfekt-col-perfect">Perfekt (Drag hier)</div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="kochen">
+                  <div class="perfekt-infinitive">kochen</div>
+                  <div class="perfekt-drop-zone" data-correct="hat gekocht">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="schneiden">
+                  <div class="perfekt-infinitive">schneiden</div>
+                  <div class="perfekt-drop-zone" data-correct="hat geschnitten">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="machen">
+                  <div class="perfekt-infinitive">machen</div>
+                  <div class="perfekt-drop-zone" data-correct="hat gemacht">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="decken">
+                  <div class="perfekt-infinitive">decken</div>
+                  <div class="perfekt-drop-zone" data-correct="hat gedeckt">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="kommen">
+                  <div class="perfekt-infinitive">kommen</div>
+                  <div class="perfekt-drop-zone" data-correct="ist gekommen">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+                
+                <div class="perfekt-row" data-verb="trinken">
+                  <div class="perfekt-infinitive">trinken</div>
+                  <div class="perfekt-drop-zone" data-correct="hat getrunken">
+                    <span class="drop-placeholder">[ ____ ]</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="perfekt-word-bank">
+                <h3 class="word-bank-title">Wortbank</h3>
+                <div class="draggable-words">
+                  <div class="draggable-word" draggable="true" data-value="hat gekocht">hat gekocht</div>
+                  <div class="draggable-word" draggable="true" data-value="hat geschnitten">hat geschnitten</div>
+                  <div class="draggable-word" draggable="true" data-value="hat gemacht">hat gemacht</div>
+                  <div class="draggable-word" draggable="true" data-value="hat gedeckt">hat gedeckt</div>
+                  <div class="draggable-word" draggable="true" data-value="ist gekommen">ist gekommen</div>
+                  <div class="draggable-word" draggable="true" data-value="hat getrunken">hat getrunken</div>
+                </div>
+              </div>
+
+              <div class="perfekt-controls">
+                <button id="checkPerfektAnswers" type="button" class="btn btn--primary">Antworten prüfen</button>
+                <button id="resetPerfektExercise" type="button" class="btn btn--ghost">Zurücksetzen</button>
+              </div>
+
+              <div id="perfektFeedback" class="perfekt-feedback" aria-live="polite"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Navigation will be injected here by navigation.js -->
+    </main>
+
+    <script>
+      /**
+       * Step 3 specific functionality
+       * Perfect tense drag and drop exercise
+       */
+      
+      // Wait for DOM to be ready
+      document.addEventListener('DOMContentLoaded', function() {
+        initializeStep3();
+      });
+
+      function initializeStep3() {
+        setupPerfektAudio();
+        setupPerfektDragAndDrop();
+        setupTranslatableElements();
+      }
+
+      function setupPerfektAudio() {
+        const perfektPlayButton = document.getElementById('perfektPlayButton');
+        const perfektAudio = document.getElementById('perfektAudio');
+
+        if (!perfektPlayButton || !perfektAudio) {
+          console.warn('Perfekt audio controls not found in step 3');
+          return;
+        }
+
+        perfektPlayButton.addEventListener('click', () => {
+          if (perfektAudio.paused) {
+            perfektAudio.play();
+            perfektPlayButton.textContent = 'Pause Audio';
+          } else {
+            perfektAudio.pause();
+            perfektPlayButton.textContent = 'Play Audio';
+          }
+        });
+
+        perfektAudio.addEventListener('play', () => {
+          perfektPlayButton.textContent = 'Pause Audio';
+        });
+
+        perfektAudio.addEventListener('pause', () => {
+          perfektPlayButton.textContent = 'Play Audio';
+        });
+
+        perfektAudio.addEventListener('ended', () => {
+          perfektPlayButton.textContent = 'Play Audio';
+        });
+      }
+
+      function setupPerfektDragAndDrop() {
+        const checkPerfektAnswers = document.getElementById('checkPerfektAnswers');
+        const resetPerfektExercise = document.getElementById('resetPerfektExercise');
+        const perfektFeedback = document.getElementById('perfektFeedback');
+        const draggableWords = document.querySelectorAll('.draggable-word');
+        const dropZones = document.querySelectorAll('.perfekt-drop-zone');
+
+        if (!draggableWords.length || !dropZones.length) {
+          console.warn('Perfekt drag and drop elements not found in step 3');
+          return;
+        }
+
+        let draggedElement = null;
+        let perfektAnswers = {};
+
+        // Drag and Drop functionality
+        function initDragAndDrop() {
+          // Add drag event listeners to draggable words
+          draggableWords.forEach(word => {
+            word.addEventListener('dragstart', handleDragStart);
+            word.addEventListener('dragend', handleDragEnd);
+          });
+
+          // Add drop event listeners to drop zones
+          dropZones.forEach(zone => {
+            zone.addEventListener('dragover', handleDragOver);
+            zone.addEventListener('dragenter', handleDragEnter);
+            zone.addEventListener('dragleave', handleDragLeave);
+            zone.addEventListener('drop', handleDrop);
+            
+            // Allow clicking on dropped words to remove them
+            zone.addEventListener('click', handleDropZoneClick);
+          });
+        }
+
+        function handleDragStart(e) {
+          if (e.target.classList.contains('used')) {
+            e.preventDefault();
+            return;
+          }
+          
+          draggedElement = e.target;
+          e.target.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/html', e.target.outerHTML);
+        }
+
+        function handleDragEnd(e) {
+          e.target.classList.remove('dragging');
+          draggedElement = null;
+        }
+
+        function handleDragOver(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+          e.preventDefault();
+          e.target.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+          e.target.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+          e.preventDefault();
+          e.target.classList.remove('drag-over');
+          
+          if (!draggedElement) return;
+          
+          const dropZone = e.target.closest('.perfekt-drop-zone');
+          if (!dropZone) return;
+
+          // Check if drop zone already has an answer
+          const existingAnswer = dropZone.querySelector('.dropped-word');
+          if (existingAnswer) {
+            // Return the existing word to the word bank
+            returnWordToBank(existingAnswer.textContent);
+            existingAnswer.remove();
+          }
+
+          // Create dropped word element
+          const droppedWord = document.createElement('div');
+          droppedWord.className = 'dropped-word';
+          droppedWord.textContent = draggedElement.textContent;
+          droppedWord.addEventListener('click', () => {
+            returnWordToBank(droppedWord.textContent);
+            droppedWord.remove();
+            dropZone.classList.remove('has-answer');
+            
+            // Hide placeholder
+            const placeholder = dropZone.querySelector('.drop-placeholder');
+            if (placeholder) {
+              placeholder.style.display = 'inline';
+            }
+            
+            // Clear feedback
+            clearFeedback();
+            
+            // Remove answer from tracking
+            const verb = dropZone.closest('.perfekt-row').dataset.verb;
+            delete perfektAnswers[verb];
+          });
+
+          // Clear placeholder and add answer
+          const placeholder = dropZone.querySelector('.drop-placeholder');
+          if (placeholder) {
+            placeholder.style.display = 'none';
+          }
+          
+          dropZone.appendChild(droppedWord);
+          dropZone.classList.add('has-answer');
+          
+          // Mark original word as used
+          draggedElement.classList.add('used');
+          draggedElement.draggable = false;
+          
+          // Track the answer
+          const verb = dropZone.closest('.perfekt-row').dataset.verb;
+          perfektAnswers[verb] = draggedElement.textContent;
+          
+          // Clear any existing feedback
+          clearFeedback();
+        }
+
+        function handleDropZoneClick(e) {
+          const droppedWord = e.target.closest('.dropped-word');
+          if (droppedWord) {
+            returnWordToBank(droppedWord.textContent);
+            droppedWord.remove();
+            
+            const dropZone = e.target.closest('.perfekt-drop-zone');
+            dropZone.classList.remove('has-answer');
+            
+            // Show placeholder again
+            const placeholder = dropZone.querySelector('.drop-placeholder');
+            if (placeholder) {
+              placeholder.style.display = 'inline';
+            }
+            
+            // Clear feedback
+            clearFeedback();
+            
+            // Remove answer from tracking
+            const verb = dropZone.closest('.perfekt-row').dataset.verb;
+            delete perfektAnswers[verb];
+          }
+        }
+
+        function returnWordToBank(wordText) {
+          const originalWord = Array.from(draggableWords).find(word => 
+            word.textContent === wordText
+          );
+          
+          if (originalWord) {
+            originalWord.classList.remove('used');
+            originalWord.draggable = true;
+          }
+        }
+
+        function checkAnswers() {
+          let correctCount = 0;
+          let totalCount = 0;
+          
+          dropZones.forEach(zone => {
+            const verb = zone.closest('.perfekt-row').dataset.verb;
+            const correctAnswer = zone.dataset.correct;
+            const userAnswer = perfektAnswers[verb];
+            const droppedWord = zone.querySelector('.dropped-word');
+            
+            totalCount++;
+            
+            // Clear previous styling
+            zone.classList.remove('correct', 'incorrect');
+            if (droppedWord) {
+              droppedWord.classList.remove('correct', 'incorrect');
+            }
+            
+            if (userAnswer === correctAnswer) {
+              correctCount++;
+              zone.classList.add('correct');
+              if (droppedWord) {
+                droppedWord.classList.add('correct');
+              }
+            } else if (userAnswer) {
+              zone.classList.add('incorrect');
+              if (droppedWord) {
+                droppedWord.classList.add('incorrect');
+              }
+            }
+          });
+          
+          // Show feedback
+          showFeedback(correctCount, totalCount);
+        }
+
+        function showFeedback(correct, total) {
+          let message = '';
+          let className = '';
+          
+          if (correct === total) {
+            message = `Ausgezeichnet! Alle ${total} Antworten sind richtig! 🎉`;
+            className = 'success';
+          } else if (correct === 0) {
+            message = `Alle Antworten sind falsch. Versuche es noch einmal! 📚`;
+            className = 'error';
+          } else {
+            message = `${correct} von ${total} Antworten sind richtig. Versuche die anderen noch einmal! 💪`;
+            className = 'partial';
+          }
+          
+          perfektFeedback.textContent = message;
+          perfektFeedback.className = `perfekt-feedback ${className}`;
+        }
+
+        function clearFeedback() {
+          perfektFeedback.textContent = '';
+          perfektFeedback.className = 'perfekt-feedback';
+          
+          // Clear all styling from drop zones and dropped words
+          dropZones.forEach(zone => {
+            zone.classList.remove('correct', 'incorrect');
+            const droppedWord = zone.querySelector('.dropped-word');
+            if (droppedWord) {
+              droppedWord.classList.remove('correct', 'incorrect');
+            }
+          });
+        }
+
+        function resetExercise() {
+          // Clear all answers
+          perfektAnswers = {};
+          
+          // Remove all dropped words and restore placeholders
+          dropZones.forEach(zone => {
+            const droppedWord = zone.querySelector('.dropped-word');
+            if (droppedWord) {
+              droppedWord.remove();
+            }
+            
+            zone.classList.remove('has-answer', 'correct', 'incorrect');
+            
+            const placeholder = zone.querySelector('.drop-placeholder');
+            if (placeholder) {
+              placeholder.style.display = 'inline';
+            }
+          });
+          
+          // Reset all draggable words
+          draggableWords.forEach(word => {
+            word.classList.remove('used');
+            word.draggable = true;
+          });
+          
+          // Clear feedback
+          clearFeedback();
+        }
+
+        // Event listeners for controls
+        if (checkPerfektAnswers) {
+          checkPerfektAnswers.addEventListener('click', checkAnswers);
+        }
+
+        if (resetPerfektExercise) {
+          resetPerfektExercise.addEventListener('click', resetExercise);
+        }
+
+        // Initialize drag and drop
+        initDragAndDrop();
+      }
+
+      function setupTranslatableElements() {
+        // Define step-specific translatable elements
+        window.getTranslatableElements = function() {
+          const elements = [];
+          
+          // Title and subtitle
+          const title = document.querySelector('.lesson__title');
+          const subtitle = document.querySelector('.lesson__subtitle');
+          if (title) elements.push({ element: title, text: title.textContent.trim() });
+          if (subtitle) elements.push({ element: subtitle, text: subtitle.textContent.trim() });
+
+          // Perfekt exercise elements
+          const perfektAudioText = document.querySelector('.perfekt-audio-text');
+          if (perfektAudioText) {
+            elements.push({ element: perfektAudioText, text: perfektAudioText.textContent.trim() });
+          }
+
+          const perfektInstructionText = document.querySelector('.perfekt-instruction-text');
+          if (perfektInstructionText) {
+            elements.push({ element: perfektInstructionText, text: perfektInstructionText.textContent.trim() });
+          }
+
+          const perfektColInfinitive = document.querySelector('.perfekt-col-infinitive');
+          if (perfektColInfinitive) {
+            elements.push({ element: perfektColInfinitive, text: perfektColInfinitive.textContent.trim() });
+          }
+
+          const perfektColPerfect = document.querySelector('.perfekt-col-perfect');
+          if (perfektColPerfect) {
+            elements.push({ element: perfektColPerfect, text: perfektColPerfect.textContent.trim() });
+          }
+
+          const wordBankTitle = document.querySelector('.word-bank-title');
+          if (wordBankTitle) {
+            elements.push({ element: wordBankTitle, text: wordBankTitle.textContent.trim() });
+          }
+
+          // Buttons
+          const perfektPlayBtn = document.getElementById('perfektPlayButton');
+          const checkBtn = document.getElementById('checkPerfektAnswers');
+          const resetBtn = document.getElementById('resetPerfektExercise');
+
+          if (perfektPlayBtn) {
+            elements.push({ element: perfektPlayBtn, text: perfektPlayBtn.textContent.trim() });
+          }
+          if (checkBtn) {
+            elements.push({ element: checkBtn, text: checkBtn.textContent.trim() });
+          }
+          if (resetBtn) {
+            elements.push({ element: resetBtn, text: resetBtn.textContent.trim() });
+          }
+
+          return elements;
+        };
+      }
+    </script>
+  </body>
+</html>

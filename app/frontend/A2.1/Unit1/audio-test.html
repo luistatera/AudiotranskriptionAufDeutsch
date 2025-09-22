@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Audio Test für LA2.1.1.mp3</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Direct Audio Controls</h2>
+        <audio controls>
+            <source src="audio/LA2.1.1.mp3" type="audio/mpeg">
+            Ihr Browser unterstützt das Audio-Element nicht.
+        </audio>
+        <p>Können Sie das Audio mit den Standard-Browserelementen abspielen?</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: JavaScript Controls</h2>
+        <button id="testPlayBtn">Abspielen (Test)</button>
+        <button id="testPauseBtn">Pausieren (Test)</button>
+        <button id="testLoadBtn">Laden</button>
+        <audio id="testAudio" src="audio/LA2.1.1.mp3" preload="metadata"></audio>
+        <div id="audioInfo"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: URL Access Test</h2>
+        <button id="urlTestBtn">URL Test</button>
+        <div id="urlResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Logs</h2>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Clear Logs</button>
+    </div>
+
+    <script>
+        const testAudio = document.getElementById('testAudio');
+        const testPlayBtn = document.getElementById('testPlayBtn');
+        const testPauseBtn = document.getElementById('testPauseBtn');
+        const testLoadBtn = document.getElementById('testLoadBtn');
+        const audioInfo = document.getElementById('audioInfo');
+        const logEl = document.getElementById('log');
+        const urlTestBtn = document.getElementById('urlTestBtn');
+        const urlResult = document.getElementById('urlResult');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            logEl.textContent = '';
+        }
+
+        function updateAudioInfo() {
+            const info = `
+Ready State: ${testAudio.readyState} (${getReadyStateText(testAudio.readyState)})
+Network State: ${testAudio.networkState} (${getNetworkStateText(testAudio.networkState)})
+Duration: ${testAudio.duration || 'N/A'}
+Current Src: ${testAudio.currentSrc}
+Paused: ${testAudio.paused}
+            `.trim();
+            audioInfo.textContent = info;
+        }
+
+        function getReadyStateText(state) {
+            const states = ['HAVE_NOTHING', 'HAVE_METADATA', 'HAVE_CURRENT_DATA', 'HAVE_FUTURE_DATA', 'HAVE_ENOUGH_DATA'];
+            return states[state] || 'UNKNOWN';
+        }
+
+        function getNetworkStateText(state) {
+            const states = ['NETWORK_EMPTY', 'NETWORK_IDLE', 'NETWORK_LOADING', 'NETWORK_NO_SOURCE'];
+            return states[state] || 'UNKNOWN';
+        }
+
+        // Add all audio event listeners
+        ['loadstart', 'durationchange', 'loadedmetadata', 'loadeddata', 'progress', 'canplay', 'canplaythrough', 'play', 'playing', 'pause', 'ended', 'error', 'abort', 'emptied', 'stalled', 'suspend', 'waiting'].forEach(eventType => {
+            testAudio.addEventListener(eventType, (e) => {
+                log(`Audio Event: ${eventType}`);
+                updateAudioInfo();
+                if (eventType === 'error' && testAudio.error) {
+                    log(`Audio Error Code: ${testAudio.error.code}`);
+                    log(`Audio Error Message: ${testAudio.error.message || 'No message'}`);
+                }
+            });
+        });
+
+        testPlayBtn.addEventListener('click', () => {
+            log('Test Play Button clicked');
+            updateAudioInfo();
+            
+            const playPromise = testAudio.play();
+            if (playPromise) {
+                playPromise
+                    .then(() => log('Audio play() resolved successfully'))
+                    .catch(error => {
+                        log(`Audio play() rejected: ${error.name} - ${error.message}`);
+                        updateAudioInfo();
+                    });
+            }
+        });
+
+        testPauseBtn.addEventListener('click', () => {
+            log('Test Pause Button clicked');
+            testAudio.pause();
+            updateAudioInfo();
+        });
+
+        testLoadBtn.addEventListener('click', () => {
+            log('Test Load Button clicked');
+            testAudio.load();
+            updateAudioInfo();
+        });
+
+        urlTestBtn.addEventListener('click', async () => {
+            log('Testing URL access...');
+            try {
+                const response = await fetch('audio/LA2.1.1.mp3', { method: 'HEAD' });
+                urlResult.innerHTML = `
+                    <strong>URL Test Result:</strong><br>
+                    Status: ${response.status} ${response.statusText}<br>
+                    Content-Type: ${response.headers.get('content-type')}<br>
+                    Content-Length: ${response.headers.get('content-length')}<br>
+                    ✅ URL is accessible
+                `;
+                log(`URL Test: ${response.status} ${response.statusText}`);
+            } catch (error) {
+                urlResult.innerHTML = `
+                    <strong>URL Test Result:</strong><br>
+                    ❌ Error: ${error.message}
+                `;
+                log(`URL Test Error: ${error.message}`);
+            }
+        });
+
+        // Initialize
+        log('Audio test page loaded');
+        updateAudioInfo();
+        testAudio.load();
+    </script>
+</body>
+</html>

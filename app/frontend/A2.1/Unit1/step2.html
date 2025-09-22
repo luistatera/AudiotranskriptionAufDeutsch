@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Step 2: Sprache · A2.1 Unit 1</title>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="shared/lesson-common.css" />
+    <link rel="stylesheet" href="shared/navigation.css" />
+    <link rel="stylesheet" href="lesson.css" />
+    
+    <!-- Scripts -->
+    <script src="../../../shared/app-navigation.js"></script>
+    <script src="unit-config.js"></script>
+    <script src="translations.js"></script>
+    <script src="shared/translation-menu.js" defer></script>
+    <script src="shared/navigation.js" defer></script>
+    <script src="lesson.js" defer></script>
+  </head>
+  <body>
+    <main class="lesson">
+      <!-- Navigation and progress will be injected by navigation.js -->
+      
+      <div class="lesson-step" id="step2" data-step="2">
+        <header class="lesson__header">
+          <div class="lesson__title-block">
+            <h1 class="lesson__title">Sprache</h1>
+            <p class="lesson__subtitle">
+              Beantworte die folgenden Fragen mündlich.
+            </p>
+          </div>
+        </header>
+
+        <section class="lesson__speaking" aria-labelledby="speaking-title">
+          <h2 id="speaking-title" class="section-title">Sprache</h2>
+          <p class="speaking__intro">Beantworte die folgenden Fragen mündlich:</p>
+          
+          <ul class="speaking__questions">
+            <li class="speaking__question">
+              <span class="speaking__question-text">Was kocht Markus?</span>
+              <button
+                type="button"
+                class="btn speaking__answer-btn"
+                data-question="Was kocht Markus?"
+              >Antwort</button>
+              <p class="speaking__transcription" aria-live="polite"></p>
+            </li>
+            <li class="speaking__question">
+              <span class="speaking__question-text">Was bereitet Anna für die Vorspeise vor?</span>
+              <button
+                type="button"
+                class="btn speaking__answer-btn"
+                data-question="Was bereitet Anna für die Vorspeise vor?"
+              >Antwort</button>
+              <p class="speaking__transcription" aria-live="polite"></p>
+            </li>
+            <li class="speaking__question">
+              <span class="speaking__question-text">Welche Art von Essen mögen beide gern?</span>
+              <button
+                type="button"
+                class="btn speaking__answer-btn"
+                data-question="Welche Art von Essen mögen beide gern?"
+              >Antwort</button>
+              <p class="speaking__transcription" aria-live="polite"></p>
+            </li>
+          </ul>
+
+          <div class="recording">
+            <span id="recordingIndicator" class="recording__indicator" aria-hidden="true">🎤</span>
+          </div>
+
+          <p id="status" class="recording__status" aria-live="polite">Bereit</p>
+        </section>
+      </div>
+
+      <!-- Navigation will be injected here by navigation.js -->
+    </main>
+
+    <script>
+      /**
+       * Step 2 specific functionality
+       * Speaking practice with voice recording
+       */
+      
+      // Wait for DOM to be ready
+      document.addEventListener('DOMContentLoaded', function() {
+        initializeStep2();
+      });
+
+      function initializeStep2() {
+        setupSpeakingFunctionality();
+        setupTranslatableElements();
+      }
+
+      function setupSpeakingFunctionality() {
+        // Get speaking-related elements
+        const statusEl = document.getElementById('status');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const questionButtons = document.querySelectorAll('.speaking__answer-btn');
+
+        if (!statusEl || !questionButtons.length) {
+          console.warn('Speaking elements not found in step 2');
+          return;
+        }
+
+        // API configuration
+        const urlConfig = new URL(window.location.href);
+        const apiBaseOverride = urlConfig.searchParams.get('api');
+        const DEFAULT_API_BASE = 'http://localhost:8000';
+        const API_BASE = (apiBaseOverride || DEFAULT_API_BASE).replace(/\/$/, '');
+        const TRANSCRIBE_URL = `${API_BASE}/transcribe`;
+        const TRANSCRIBE_EDUCATIONAL_URL = `${API_BASE}/transcribe-educational`;
+
+        // Recording state
+        let mediaRecorder = null;
+        let mediaStream = null;
+        let isRecording = false;
+        let audioChunks = [];
+        let activeQuestionContext = null;
+        let pendingUploadContext = null;
+
+        // Utility functions
+        function setStatusText(text) {
+          if (statusEl) {
+            statusEl.textContent = text;
+          }
+        }
+
+        function formatStatusMessage(baseText, context = activeQuestionContext) {
+          if (context && context.question) {
+            return `${baseText} – ${context.question}`;
+          }
+          return baseText;
+        }
+
+        function toggleIndicator(active) {
+          if (!recordingIndicator) return;
+          recordingIndicator.classList.toggle('is-active', active);
+          recordingIndicator.setAttribute('aria-hidden', active ? 'false' : 'true');
+        }
+
+        function resolveTranscriptionTarget(context) {
+          if (!context) return null;
+
+          if (context.transcriptionEl && document.body.contains(context.transcriptionEl)) {
+            return context.transcriptionEl;
+          }
+
+          const questionItem = context.button?.closest('.speaking__question');
+          if (!questionItem) return null;
+
+          const transcriptionEl = questionItem.querySelector('.speaking__transcription');
+          if (transcriptionEl) {
+            context.transcriptionEl = transcriptionEl;
+          }
+          return transcriptionEl;
+        }
+
+        function appendTranscript(text, context = null) {
+          const normalized = text ? text.trim() : '';
+          if (!normalized) return;
+
+          const targetContext = context || activeQuestionContext;
+          const transcriptionEl = resolveTranscriptionTarget(targetContext);
+
+          if (!transcriptionEl) {
+            console.warn('Keine Transkriptionsausgabe gefunden für den Kontext.');
+            return;
+          }
+
+          transcriptionEl.textContent = normalized;
+        }
+
+        function setActiveQuestion(button) {
+          if (!button) {
+            clearActiveQuestion();
+            return;
+          }
+
+          clearActiveQuestion();
+
+          const questionText = button.dataset.question || button.textContent?.trim() || '';
+          const transcriptionEl = button.closest('.speaking__question')?.querySelector('.speaking__transcription') || null;
+          const originalLabel = button.dataset.originalLabel || button.textContent?.trim() || 'Antwort';
+          button.dataset.originalLabel = originalLabel;
+          button.textContent = 'Stopp';
+          button.setAttribute('aria-pressed', 'true');
+          activeQuestionContext = {
+            button,
+            question: questionText,
+            transcriptionEl,
+          };
+
+          button.classList.add('is-recording');
+        }
+
+        function clearActiveQuestion(context) {
+          const targetContext = context || activeQuestionContext;
+          if (!targetContext) {
+            return;
+          }
+
+          const { button } = targetContext;
+          if (button) {
+            button.classList.remove('is-recording');
+            button.disabled = false;
+            const originalLabel = button.dataset.originalLabel || 'Antwort';
+            button.textContent = originalLabel;
+            button.setAttribute('aria-pressed', 'false');
+          }
+
+          if (!context || (activeQuestionContext && button === activeQuestionContext.button)) {
+            activeQuestionContext = null;
+          }
+        }
+
+        function setQuestionButtonsDisabled(disabled) {
+          questionButtons.forEach((button) => {
+            button.disabled = disabled;
+            button.setAttribute('aria-pressed', 'false');
+            if (disabled) {
+              button.classList.remove('is-recording');
+              const originalLabel = button.dataset.originalLabel || 'Antwort';
+              button.textContent = originalLabel;
+            }
+          });
+
+          if (disabled) {
+            activeQuestionContext = null;
+          }
+        }
+
+        function resetState() {
+          mediaRecorder = null;
+          mediaStream = null;
+          isRecording = false;
+          audioChunks = [];
+          pendingUploadContext = null;
+          toggleIndicator(false);
+        }
+
+        async function uploadAudio(blob, useEducationalEndpoint = false, contextOverride = null) {
+          if (!blob || blob.size === 0) {
+            console.warn('No audio blob to upload or blob is empty');
+            setStatusText('Fehler: Keine Aufnahme erkannt');
+            return;
+          }
+
+          const questionContext = contextOverride || activeQuestionContext;
+          const formData = new FormData();
+
+          let filename = 'recording.webm';
+          if (blob.type.includes('mp4')) {
+            filename = 'recording.mp4';
+          } else if (blob.type.includes('mpeg')) {
+            filename = 'recording.mp3';
+          } else if (blob.type.includes('wav')) {
+            filename = 'recording.wav';
+          }
+
+          formData.append('audio', blob, filename);
+
+          const url = useEducationalEndpoint ? TRANSCRIBE_EDUCATIONAL_URL : TRANSCRIBE_URL;
+          const endpointType = useEducationalEndpoint ? 'educational (fair use)' : 'standard';
+
+          try {
+            const processingMessage = questionContext
+              ? `Antwort wird transkribiert (${endpointType})...`
+              : `Audio wird verarbeitet (${endpointType})...`;
+            setStatusText(formatStatusMessage(processingMessage, questionContext));
+            const response = await fetch(url, {
+              method: 'POST',
+              body: formData,
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+
+              if (
+                response.status === 422 &&
+                !useEducationalEndpoint &&
+                errorData.detail &&
+                typeof errorData.detail === 'string' &&
+                errorData.detail.includes('copyrighted material')
+              ) {
+                setStatusText(
+                  formatStatusMessage(
+                    'Urheberrecht erkannt, wechsle zum Educational-Endpunkt...',
+                    questionContext,
+                  ),
+                );
+                await new Promise((resolve) => setTimeout(resolve, 800));
+                return uploadAudio(blob, true, questionContext);
+              }
+
+              throw new Error(errorData.detail || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.text) {
+              let transcriptionText = data.text;
+              if (useEducationalEndpoint) {
+                transcriptionText = `${transcriptionText}\n[Transkription über Educational-Endpunkt]`;
+              }
+              appendTranscript(transcriptionText, questionContext);
+              setStatusText(formatStatusMessage('Transkription abgeschlossen', questionContext));
+            } else {
+              setStatusText(formatStatusMessage('Keine Transkription erhalten', questionContext));
+            }
+          } catch (error) {
+            console.error('Audio-Upload fehlgeschlagen:', error);
+            if (error.message && error.message.includes('copyrighted material')) {
+              setStatusText(
+                formatStatusMessage(
+                  'Urheberrechtshinweis. Bitte eigene Stimme nutzen.',
+                  questionContext,
+                ),
+              );
+            } else {
+              setStatusText(formatStatusMessage(`Fehler: ${error.message}`, questionContext));
+            }
+          } finally {
+            clearActiveQuestion(questionContext);
+          }
+        }
+
+        async function startRecording() {
+          if (isRecording) return false;
+
+          setStatusText(formatStatusMessage('Mikrofonzugriff wird angefordert...'));
+
+          try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                channelCount: 1,
+                sampleRate: 48000,
+                sampleSize: 16,
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              },
+            });
+          } catch (err) {
+            console.error('Mikrofonzugriff verweigert:', err);
+            setStatusText(formatStatusMessage('Fehler: Mikrofonzugriff verweigert'));
+            clearActiveQuestion();
+            pendingUploadContext = null;
+            return false;
+          }
+
+          let options = {};
+          const formats = [
+            'audio/wav',
+            'audio/mp4',
+            'audio/mpeg',
+            'audio/webm;codecs=opus',
+            'audio/webm',
+          ];
+
+          for (const format of formats) {
+            if (MediaRecorder.isTypeSupported(format)) {
+              options = { mimeType: format };
+              break;
+            }
+          }
+
+          mediaRecorder = new MediaRecorder(mediaStream, options);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              audioChunks.push(event.data);
+            }
+          };
+
+          mediaRecorder.onstop = () => {
+            if (audioChunks.length > 0) {
+              const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+              const contextForUpload = pendingUploadContext || activeQuestionContext;
+              pendingUploadContext = null;
+              uploadAudio(blob, false, contextForUpload);
+            } else {
+              setStatusText(formatStatusMessage('Fehler: Keine Aufnahme gefunden'));
+              clearActiveQuestion();
+              pendingUploadContext = null;
+            }
+
+            setTimeout(() => {
+              if (!isRecording) {
+                resetState();
+                if (statusEl && statusEl.textContent.startsWith('Aufnahme wird beendet')) {
+                  setStatusText('Bereit');
+                }
+              }
+            }, 3000);
+          };
+
+          mediaRecorder.onerror = (event) => {
+            console.error('MediaRecorder-Fehler:', event.error);
+            setStatusText(formatStatusMessage(`Aufnahmefehler: ${event.error.message}`));
+            clearActiveQuestion();
+            pendingUploadContext = null;
+          };
+
+          isRecording = true;
+          toggleIndicator(true);
+          setStatusText(formatStatusMessage('Aufnahme läuft...'));
+          mediaRecorder.start(1000);
+          return true;
+        }
+
+        function stopRecording() {
+          if (!isRecording) return;
+
+          isRecording = false;
+          const questionContext = activeQuestionContext;
+          if (questionContext && questionContext.button) {
+            pendingUploadContext = questionContext;
+            clearActiveQuestion(questionContext);
+          } else {
+            pendingUploadContext = null;
+          }
+          toggleIndicator(false);
+          setStatusText(formatStatusMessage('Aufnahme wird beendet...', questionContext));
+
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+          }
+
+          if (mediaStream) {
+            mediaStream.getTracks().forEach((track) => track.stop());
+          }
+        }
+
+        // Event listeners for question buttons
+        if (questionButtons.length) {
+          questionButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+              if (isRecording) {
+                if (activeQuestionContext && activeQuestionContext.button === button) {
+                  stopRecording();
+                } else {
+                  setStatusText(
+                    formatStatusMessage(
+                      'Bitte beende zuerst die aktuelle Aufnahme.',
+                      activeQuestionContext,
+                    ),
+                  );
+                }
+                return;
+              }
+
+              setActiveQuestion(button);
+
+              Promise.resolve(startRecording()).then((started) => {
+                if (!started) {
+                  clearActiveQuestion();
+                  return;
+                }
+              });
+            });
+          });
+        }
+
+        // Check browser compatibility
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setStatusText('Auf diesem Gerät ist keine Aufnahme möglich.');
+          setQuestionButtonsDisabled(true);
+        } else if (!window.MediaRecorder) {
+          setStatusText('MediaRecorder wird nicht unterstützt.');
+          setQuestionButtonsDisabled(true);
+        } else {
+          setStatusText('Bereit');
+          setQuestionButtonsDisabled(false);
+        }
+      }
+
+      function setupTranslatableElements() {
+        // Define step-specific translatable elements
+        window.getTranslatableElements = function() {
+          const elements = [];
+          
+          // Title and subtitle
+          const title = document.querySelector('.lesson__title');
+          const subtitle = document.querySelector('.lesson__subtitle');
+          if (title) elements.push({ element: title, text: title.textContent.trim() });
+          if (subtitle) elements.push({ element: subtitle, text: subtitle.textContent.trim() });
+
+          // Section titles
+          const sectionTitles = document.querySelectorAll('.section-title');
+          sectionTitles.forEach(title => {
+            elements.push({ element: title, text: title.textContent.trim() });
+          });
+
+          // Speaking section
+          const speakingIntro = document.querySelector('.speaking__intro');
+          if (speakingIntro) {
+            elements.push({ element: speakingIntro, text: speakingIntro.textContent.trim() });
+          }
+
+          // Speaking questions
+          const speakingQuestions = document.querySelectorAll('.speaking__question-text');
+          speakingQuestions.forEach(question => {
+            elements.push({ element: question, text: question.textContent.trim() });
+          });
+
+          // Answer buttons
+          const answerButtons = document.querySelectorAll('.speaking__answer-btn');
+          answerButtons.forEach(btn => {
+            const originalText = btn.dataset.originalLabel || btn.textContent.trim();
+            if (originalText && originalText !== 'Stopp') {
+              elements.push({ element: btn, text: originalText });
+            }
+          });
+
+          return elements;
+        };
+      }
+    </script>
+  </body>
+</html>

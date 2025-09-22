@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Step 4: Frida erzählt ihren Tag · A2.1 Unit 1</title>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="shared/lesson-common.css" />
+    <link rel="stylesheet" href="shared/navigation.css" />
+    <link rel="stylesheet" href="lesson.css" />
+    
+    <!-- Scripts -->
+    <script src="../../../shared/app-navigation.js"></script>
+    <script src="unit-config.js"></script>
+    <script src="translations.js"></script>
+    <script src="shared/translation-menu.js" defer></script>
+    <script src="shared/navigation.js" defer></script>
+    <script src="lesson.js" defer></script>
+  </head>
+  <body>
+    <main class="lesson">
+      <!-- Navigation and progress will be injected by navigation.js -->
+      
+      <div class="lesson-step" id="step4" data-step="4">
+        <header class="lesson__header">
+          <div class="lesson__title-block">
+            <h1 class="lesson__title">🎧 Frida erzählt ihren Tag</h1>
+            <p class="lesson__subtitle">
+              Höre den Dialog und ordne die Bilder in die richtige Reihenfolge.
+            </p>
+          </div>
+        </header>
+
+        <section class="lesson__frida-exercise" aria-labelledby="frida-title">
+          <div class="frida-exercise">
+            <div class="frida-instructions">
+              <p class="frida-instruction-text">Höre den Dialog. Ordne die Bilder in die richtige Reihenfolge.</p>
+            </div>
+
+            <div class="frida-audio">
+              <div class="audio-player">
+                <button id="fridaPlayButton" type="button" class="btn btn--primary">Audio abspielen</button>
+                <audio id="fridaAudio" src="audio/LA2.1.2.mp3" preload="none">
+                  <source src="audio/LA2.1.2.mp3" type="audio/mpeg">
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            </div>
+
+            <div class="frida-image-board">
+              <h3 class="image-board-title">Ordne Fridas Tag chronologisch:</h3>
+              <div id="fridaImageContainer" class="frida-images-container">
+                <!-- Images will be populated by JavaScript -->
+              </div>
+            </div>
+
+            <div class="frida-controls">
+              <button id="resetFridaOrder" type="button" class="btn btn--ghost">Zurücksetzen</button>
+              <button id="checkFridaOrder" type="button" class="btn btn--primary">Prüfen</button>
+            </div>
+
+            <div id="fridaFeedback" class="frida-feedback" aria-live="polite"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Navigation will be injected here by navigation.js -->
+    </main>
+
+    <script>
+      /**
+       * Step 4 specific functionality
+       * Frida's daily routine image ordering exercise
+       */
+      
+      // Wait for DOM to be ready
+      document.addEventListener('DOMContentLoaded', function() {
+        initializeStep4();
+      });
+
+      function initializeStep4() {
+        setupFridaAudio();
+        setupFridaExercise();
+        setupTranslatableElements();
+      }
+
+      function setupFridaAudio() {
+        const fridaPlayButton = document.getElementById('fridaPlayButton');
+        const fridaAudio = document.getElementById('fridaAudio');
+
+        if (!fridaPlayButton || !fridaAudio) {
+          console.warn('Frida audio controls not found in step 4');
+          return;
+        }
+
+        fridaPlayButton.addEventListener('click', () => {
+          if (fridaAudio.paused) {
+            fridaAudio.play();
+            fridaPlayButton.textContent = 'Audio pausieren';
+          } else {
+            fridaAudio.pause();
+            fridaPlayButton.textContent = 'Audio abspielen';
+          }
+        });
+
+        fridaAudio.addEventListener('play', () => {
+          fridaPlayButton.textContent = 'Audio pausieren';
+        });
+
+        fridaAudio.addEventListener('pause', () => {
+          fridaPlayButton.textContent = 'Audio abspielen';
+        });
+
+        fridaAudio.addEventListener('ended', () => {
+          fridaPlayButton.textContent = 'Audio abspielen';
+        });
+      }
+
+      function setupFridaExercise() {
+        const fridaImageContainer = document.getElementById('fridaImageContainer');
+        const checkFridaOrder = document.getElementById('checkFridaOrder');
+        const resetFridaOrder = document.getElementById('resetFridaOrder');
+        const fridaFeedback = document.getElementById('fridaFeedback');
+
+        if (!fridaImageContainer) {
+          console.warn('Frida image container not found in step 4');
+          return;
+        }
+
+        // Frida exercise data and state
+        const fridaImages = [
+          { id: 1, src: 'img/Frida/01_kaffee.png', alt: 'Frida trinkt Kaffee', correctPosition: 1 },
+          { id: 2, src: 'img/Frida/02_fahrrad.png', alt: 'Frida fährt Fahrrad', correctPosition: 2 },
+          { id: 3, src: 'img/Frida/03_buero.png', alt: 'Frida arbeitet im Büro', correctPosition: 3 },
+          { id: 4, src: 'img/Frida/04_suppe.png', alt: 'Frida isst Suppe', correctPosition: 4 },
+          { id: 5, src: 'img/Frida/05_park.png', alt: 'Frida trifft Freund im Park', correctPosition: 5 },
+          { id: 6, src: 'img/Frida/06_kochen.png', alt: 'Frida kocht zu Hause', correctPosition: 6 }
+        ];
+
+        let currentFridaOrder = [];
+        let initialShuffledOrder = [];
+        let fridaDraggedElement = null;
+        let fridaProgressState = {
+          completed: false,
+          attempts: 0,
+          usedHints: false
+        };
+
+        // Shuffle array function
+        function shuffleArray(array) {
+          const shuffled = [...array];
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+          }
+          return shuffled;
+        }
+
+        // Initialize Frida images
+        function initializeFridaImages() {
+          if (!fridaImageContainer) return;
+
+          // Create shuffled order for initial display
+          initialShuffledOrder = shuffleArray(fridaImages);
+          currentFridaOrder = [...initialShuffledOrder];
+
+          renderFridaImages();
+          initializeFridaDragAndDrop();
+        }
+
+        // Render Frida images
+        function renderFridaImages() {
+          if (!fridaImageContainer) return;
+
+          fridaImageContainer.innerHTML = '';
+
+          currentFridaOrder.forEach((imageData, index) => {
+            const card = document.createElement('div');
+            card.className = 'frida-image-card';
+            card.draggable = true;
+            card.tabIndex = 0;
+            card.dataset.imageId = imageData.id;
+            card.dataset.currentPosition = index + 1;
+
+            card.innerHTML = `
+              <div class="frida-image-number">${index + 1}</div>
+              <img src="${imageData.src}" alt="${imageData.alt}" class="frida-image" />
+              <div class="frida-image-alt">${imageData.alt}</div>
+            `;
+
+            // Make cards positioned so numbers show
+            card.classList.add('positioned');
+
+            fridaImageContainer.appendChild(card);
+          });
+        }
+
+        // Initialize drag and drop for Frida exercise
+        function initializeFridaDragAndDrop() {
+          const imageCards = fridaImageContainer.querySelectorAll('.frida-image-card');
+
+          imageCards.forEach(card => {
+            // Drag events
+            card.addEventListener('dragstart', handleFridaDragStart);
+            card.addEventListener('dragend', handleFridaDragEnd);
+            card.addEventListener('dragover', handleFridaDragOver);
+            card.addEventListener('dragenter', handleFridaDragEnter);
+            card.addEventListener('dragleave', handleFridaDragLeave);
+            card.addEventListener('drop', handleFridaDrop);
+
+            // Keyboard navigation
+            card.addEventListener('keydown', handleFridaKeyboard);
+          });
+        }
+
+        function handleFridaDragStart(e) {
+          fridaDraggedElement = e.target;
+          e.target.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/html', e.target.outerHTML);
+          
+          // Enable drop zones
+          fridaImageContainer.classList.add('drop-enabled');
+        }
+
+        function handleFridaDragEnd(e) {
+          e.target.classList.remove('dragging');
+          fridaDraggedElement = null;
+          
+          // Disable drop zones
+          fridaImageContainer.classList.remove('drop-enabled');
+          
+          // Clear any residual drag-over styles
+          const allCards = fridaImageContainer.querySelectorAll('.frida-image-card');
+          allCards.forEach(card => card.classList.remove('drag-over'));
+        }
+
+        function handleFridaDragOver(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleFridaDragEnter(e) {
+          e.preventDefault();
+          if (e.target.closest('.frida-image-card') && e.target.closest('.frida-image-card') !== fridaDraggedElement) {
+            e.target.closest('.frida-image-card').classList.add('drag-over');
+          }
+        }
+
+        function handleFridaDragLeave(e) {
+          if (e.target.closest('.frida-image-card')) {
+            e.target.closest('.frida-image-card').classList.remove('drag-over');
+          }
+        }
+
+        function handleFridaDrop(e) {
+          e.preventDefault();
+          
+          const dropTarget = e.target.closest('.frida-image-card');
+          if (!dropTarget || dropTarget === fridaDraggedElement) return;
+
+          dropTarget.classList.remove('drag-over');
+
+          // Get positions
+          const draggedIndex = Array.from(fridaImageContainer.children).indexOf(fridaDraggedElement);
+          const targetIndex = Array.from(fridaImageContainer.children).indexOf(dropTarget);
+
+          // Swap in current order array
+          [currentFridaOrder[draggedIndex], currentFridaOrder[targetIndex]] = 
+          [currentFridaOrder[targetIndex], currentFridaOrder[draggedIndex]];
+
+          // Re-render
+          renderFridaImages();
+          initializeFridaDragAndDrop();
+
+          // Clear feedback
+          clearFridaFeedback();
+        }
+
+        // Keyboard navigation for accessibility
+        function handleFridaKeyboard(e) {
+          const cards = Array.from(fridaImageContainer.querySelectorAll('.frida-image-card'));
+          const currentIndex = cards.indexOf(e.target);
+
+          switch(e.key) {
+            case 'ArrowLeft':
+            case 'ArrowUp':
+              e.preventDefault();
+              if (currentIndex > 0) {
+                cards[currentIndex - 1].focus();
+              }
+              break;
+            case 'ArrowRight':
+            case 'ArrowDown':
+              e.preventDefault();
+              if (currentIndex < cards.length - 1) {
+                cards[currentIndex + 1].focus();
+              }
+              break;
+            case 'Enter':
+            case ' ':
+              e.preventDefault();
+              // Simple swap with next element for keyboard users
+              if (currentIndex < cards.length - 1) {
+                [currentFridaOrder[currentIndex], currentFridaOrder[currentIndex + 1]] = 
+                [currentFridaOrder[currentIndex + 1], currentFridaOrder[currentIndex]];
+                renderFridaImages();
+                initializeFridaDragAndDrop();
+                // Focus on the moved element
+                setTimeout(() => {
+                  const newCards = fridaImageContainer.querySelectorAll('.frida-image-card');
+                  if (newCards[currentIndex + 1]) {
+                    newCards[currentIndex + 1].focus();
+                  }
+                }, 100);
+                clearFridaFeedback();
+              }
+              break;
+          }
+        }
+
+        // Check Frida order
+        function validateFridaOrder() {
+          fridaProgressState.attempts++;
+          
+          let correctCount = 0;
+          const totalCount = currentFridaOrder.length;
+          
+          // Clear previous styling
+          const cards = fridaImageContainer.querySelectorAll('.frida-image-card');
+          cards.forEach(card => {
+            card.classList.remove('correct', 'incorrect');
+          });
+
+          // Check each position
+          currentFridaOrder.forEach((imageData, index) => {
+            const card = cards[index];
+            const currentPosition = index + 1;
+            
+            if (imageData.correctPosition === currentPosition) {
+              correctCount++;
+              card.classList.add('correct');
+            } else {
+              card.classList.add('incorrect');
+            }
+          });
+
+          // Show feedback
+          showFridaFeedback(correctCount, totalCount);
+
+          // Check if completed
+          if (correctCount === totalCount) {
+            fridaProgressState.completed = true;
+            // Emit completion event
+            emitFridaExerciseEvent('order_solved', {
+              attempts: fridaProgressState.attempts,
+              usedHints: fridaProgressState.usedHints
+            });
+          }
+        }
+
+        // Show feedback
+        function showFridaFeedback(correct, total) {
+          let message = '';
+          let className = '';
+          
+          if (correct === total) {
+            message = `Ausgezeichnet! Alle ${total} Bilder sind in der richtigen Reihenfolge! 🎉`;
+            className = 'success';
+          } else if (correct === 0) {
+            message = `Fast! Höre noch einmal und versuche es erneut. 📚`;
+            className = 'error';
+          } else {
+            message = `${correct} von ${total} Bildern sind richtig platziert. Fast! Höre noch einmal und versuche es erneut. 💪`;
+            className = 'partial';
+          }
+          
+          fridaFeedback.textContent = message;
+          fridaFeedback.className = `frida-feedback ${className}`;
+
+          // Emit check event
+          emitFridaExerciseEvent('order_checked', {
+            correct: correct,
+            total: total,
+            attempts: fridaProgressState.attempts
+          });
+        }
+
+        // Clear feedback
+        function clearFridaFeedback() {
+          if (fridaFeedback) {
+            fridaFeedback.textContent = '';
+            fridaFeedback.className = 'frida-feedback';
+          }
+          
+          // Clear styling from cards
+          const cards = fridaImageContainer.querySelectorAll('.frida-image-card');
+          cards.forEach(card => {
+            card.classList.remove('correct', 'incorrect');
+          });
+        }
+
+        // Reset Frida exercise
+        function resetFridaExercise() {
+          // Reset to initial shuffled order
+          currentFridaOrder = [...initialShuffledOrder];
+          renderFridaImages();
+          initializeFridaDragAndDrop();
+          clearFridaFeedback();
+
+          // Emit reset event
+          emitFridaExerciseEvent('exercise_reset', {
+            attempts: fridaProgressState.attempts
+          });
+        }
+
+        // Event emission for progress tracking
+        function emitFridaExerciseEvent(eventType, data = {}) {
+          const event = new CustomEvent('fridaExerciseEvent', {
+            detail: {
+              type: eventType,
+              exerciseId: 'A2.1-U1-Listen-Order-Frida',
+              timestamp: new Date().toISOString(),
+              ...data
+            }
+          });
+          document.dispatchEvent(event);
+        }
+
+        // Initialize exercise
+        function initializeFridaExercise() {
+          if (!fridaImageContainer) return;
+
+          // Initialize images
+          initializeFridaImages();
+
+          // Emit viewed event
+          emitFridaExerciseEvent('exercise_viewed');
+
+          // Event listeners for controls
+          if (checkFridaOrder) {
+            checkFridaOrder.addEventListener('click', () => validateFridaOrder());
+          }
+
+          if (resetFridaOrder) {
+            resetFridaOrder.addEventListener('click', resetFridaExercise);
+          }
+
+          // Audio play event tracking
+          const fridaAudio = document.getElementById('fridaAudio');
+          if (fridaAudio) {
+            fridaAudio.addEventListener('play', () => {
+              emitFridaExerciseEvent('audio_played');
+            });
+          }
+        }
+
+        // Initialize the exercise
+        initializeFridaExercise();
+      }
+
+      function setupTranslatableElements() {
+        // Define step-specific translatable elements
+        window.getTranslatableElements = function() {
+          const elements = [];
+          
+          // Title and subtitle
+          const title = document.querySelector('.lesson__title');
+          const subtitle = document.querySelector('.lesson__subtitle');
+          if (title) elements.push({ element: title, text: title.textContent.trim() });
+          if (subtitle) elements.push({ element: subtitle, text: subtitle.textContent.trim() });
+
+          // Frida instruction text
+          const fridaInstructionText = document.querySelector('.frida-instruction-text');
+          if (fridaInstructionText) {
+            elements.push({ element: fridaInstructionText, text: fridaInstructionText.textContent.trim() });
+          }
+
+          // Image board title
+          const imageBoardTitle = document.querySelector('.image-board-title');
+          if (imageBoardTitle) {
+            elements.push({ element: imageBoardTitle, text: imageBoardTitle.textContent.trim() });
+          }
+
+          // Image alt texts
+          const imageAlts = document.querySelectorAll('.frida-image');
+          imageAlts.forEach(img => {
+            if (img.alt) {
+              elements.push({ element: img, text: img.alt, isAltText: true });
+            }
+          });
+
+          // Buttons
+          const fridaPlayBtn = document.getElementById('fridaPlayButton');
+          const checkBtn = document.getElementById('checkFridaOrder');
+          const resetBtn = document.getElementById('resetFridaOrder');
+
+          if (fridaPlayBtn) {
+            elements.push({ element: fridaPlayBtn, text: fridaPlayBtn.textContent.trim() });
+          }
+          if (checkBtn) {
+            elements.push({ element: checkBtn, text: checkBtn.textContent.trim() });
+          }
+          if (resetBtn) {
+            elements.push({ element: resetBtn, text: resetBtn.textContent.trim() });
+          }
+
+          return elements;
+        };
+      }
+    </script>
+  </body>
+</html>
